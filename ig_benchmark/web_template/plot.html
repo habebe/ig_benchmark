@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<title id="page_title_id">Plot</title>
+<html>
+    <link rel="stylesheet" href="css/layout.css" type="text/css">
+    <link rel="stylesheet" href="css/smoothness/jquery-ui-1.9.2.custom.min.css" type="text/css">
+
+    <script src="lib/jquery.js"></script>
+    <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../excanvas.min.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="lib/jquery.flot.js"></script>
+    <script src="lib/jquery-ui.js"></script>
+    <script src="js/plot.js"></script>
+
+    <script>
+   
+    </script>
+    
+
+    <style type="text/css">
+      body{
+      margin:0;
+      padding:0 0 0 0px;
+      } 
+      
+      @media screen{
+      body>div#left-sidebar{
+      position:fixed;
+      }
+      }
+      * html body{
+      overflow:hidden;
+      } 
+      * html div#content{
+      height:100%;
+      overflow:auto;
+      }
+
+      #plot_placeholder{
+      width:700px;
+      height:400px;
+      padding: 13px 4px;
+      }
+
+      #plot_toolbar{
+      padding: 13px 4px;
+      }
+
+    </style>
+    
+	<div id="header">
+	  <h1 id="title_id"><a href="" id="title_link_id"></a></h1>
+	  <h2 id="description_id"></h2>
+    
+      <hr>
+	  <table>
+		<td>
+		  <table>
+		      <tr><td><table id="ivar_table_selection_id" width="200px" height="150px"></table></td></tr>
+		      <tr><td><button id="plot_button_data_id" align="center">add data</button></td></tr>
+		  </table>
+		</td>
+		
+		<td>
+		  <table>
+		      <tr>
+			<td align="right">
+			  <table>
+				<td>
+				  <span id="plot_toolbar" class="ui-widget-header ui-corner-all">
+				    <input type="checkbox" id="plot_show_points_id" /><label for="plot_show_points_id">points</label>
+				    <input type="checkbox" id="plot_show_lines_id" /><label for="plot_show_lines_id">lines</label>
+				    <input type="checkbox" id="plot_show_legends_id" /><label for="plot_show_legends_id">legends</label>
+				    <button id="plot_clear_id" />clear</button>
+				  </span>
+				</td>
+			  </table>
+			</td>
+		      </tr>
+		      <tr>
+			<td valign="top">
+			  <div id="plot_placeholder"></div>
+			 
+			</td>
+		      </tr>
+		      <tr>
+			<td>
+			  <div id="x_axis_label_id" style="height:30px; line-height:30px; text-align:center;"></div>
+			</td>
+		      </tr>
+		  </table>
+		</td>
+	  </table>
+	
+	</div>
+	
+
+
+
+    
+    
+    
+   
+
+  
+    <script>
+      $(document).ready(function()
+      {
+      setup_plot_toolbar();
+      initialize_data(document.URL.split("?"));
+      $.plot($("#plot_placeholder"), []);   
+      plot_data_list();
+      });
+    </script>
+
+  
+
+  <body>
+  </body>
+</html>

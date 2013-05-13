@@ -5,6 +5,9 @@ import sys
 import getopt
 import operations
 
+print os.path.dirname(__file__)
+raw_input()
+
 
 def main():
     if len(sys.argv) < 2:
