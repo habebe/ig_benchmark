@@ -12,7 +12,7 @@ import subprocess
 from collections import deque
 
 import ig_property
-import config
+#import config
 import runnable
 import db_objects
 

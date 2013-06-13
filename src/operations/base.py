@@ -238,7 +238,7 @@ import show_tables
 import run
 import delete_tag
 import report
-import show_db_config
+#import show_db_config
 import graph_create
 import graph_v_ingest
 import graph_v_search
@@ -261,7 +261,7 @@ def populate():
         add_operation(delete_tag.operation())
         add_operation(report.operation())
         add_operation(run.operation())
-        add_operation(show_db_config.operation())
+        #add_operation(show_db_config.operation())
         add_operation(graph_create.operation())
         add_operation(graph_v_ingest.operation())
         add_operation(graph_v_search.operation())

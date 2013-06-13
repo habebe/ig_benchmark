@@ -3,7 +3,7 @@ import sys
 import getopt
 import os
 import shutil
-import model
+import db_model
 import datetime
 import types
 import json
@@ -14,16 +14,16 @@ import platform
 class db:
     default_name = platform.uname()[0].lower()
     schema_classes = [
-        model.engine,
-        model.os_type,
-        model.case_type,
-        model.platform,
-        model.index_type,
-        model.tag,
-        model.suite,
-        model.case,
-        model.case_data,
-        model.case_data_stat
+        db_model.engine,
+        db_model.os_type,
+        db_model.case_type,
+        db_model.platform,
+        db_model.index_type,
+        db_model.tag,
+        db_model.suite,
+        db_model.case,
+        db_model.case_data,
+        db_model.case_data_stat
         ]
 
     def now_string(self,includeSeconds=True):
@@ -114,7 +114,7 @@ class db:
     def __delete_tag__(self,where):
         self.connection = sqlite3.connect(self.name)
         cursor = self.connection.cursor()
-        string = "SELECT id,name FROM %s "%(model.tag.get_name())
+        string = "SELECT id,name FROM %s "%(db_model.tag.get_name())
         if where:
             string += " WHERE %s "%(where)
             pass
@@ -133,8 +133,8 @@ class db:
                     string += "|"
                 counter -= 1
             
-            tag_string  = "DELETE FROM %s where id=%d"%(model.tag.get_name(),row[0])
-            data_string = "DELETE FROM %s where tag_id=%d"%(model.case_data.get_name(),row[0])
+            tag_string  = "DELETE FROM %s where id=%d"%(db_model.tag.get_name(),row[0])
+            data_string = "DELETE FROM %s where tag_id=%d"%(db_model.case_data.get_name(),row[0])
             #print >> output,"\t",tag_string
             cursor.execute(tag_string)
             #print >> output,"\t",data_string

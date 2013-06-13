@@ -2,7 +2,7 @@ import sys
 import getopt
 import os
 import shutil
-import model
+import db_model
 import datetime
 import types
 import json
@@ -364,7 +364,7 @@ class db_report:
 
 
     def traverse_case_tree(self,tree_structure,parent_id):
-        cases = self.db.fetch_using(model.case,"parent",parent_id)
+        cases = self.db.fetch_using(db_model.case,"parent",parent_id)
         for i in cases:
             item_map = {"name":i.name,"ref":"javascript:datatable_populate_using_name('case','%d');"%(i.id)}
             item_structure = []
@@ -374,7 +374,7 @@ class db_report:
             pass            
 
     def traverse_suite_tree(self,tree_structure,parent_id):
-        suites = self.db.fetch_using(model.suite,"parent",parent_id)
+        suites = self.db.fetch_using(db_model.suite,"parent",parent_id)
         for i in suites:
             item_map = {"name":i.name,"ref":"javascript:datatable_populate_using_name('suite','%d');"%(i.id)}
             item_structure = []
@@ -524,7 +524,7 @@ class db_report:
     
     def report_case_data(self,location,case):
         f = file(os.path.join(location,"data","case.%d.json"%(case.id)),"w")
-        case_data_list = self.db.fetch_using(model.case_data_stat,"case_id",case.id)
+        case_data_list = self.db.fetch_using(db_model.case_data_stat,"case_id",case.id)
         #case_data_structure = object_view.get_case_content(case_data_list,case.case_type_id)
         case_data_structure = self.get_case_content(case,case_data_list)
         structure = {
@@ -557,12 +557,12 @@ class db_report:
             ({"sTitle":"Name"},{"content":'html_reference(object,object.name)'}),
              ({"sTitle":"Description"},{"content":"object.description"})
             ]
-        suites = self.db.fetch_using(model.suite,"parent",parent_id)
+        suites = self.db.fetch_using(db_model.suite,"parent",parent_id)
         for suite in suites:
             f = file(os.path.join(location,"data","suite.%d.json"%(suite.id)),"w")
             case_structure = []
-            cases = self.db.fetch_using(model.case,"parent",suite.id)
-            sub_suites = self.db.fetch_using(model.suite,"parent",suite.id)
+            cases = self.db.fetch_using(db_model.case,"parent",suite.id)
+            sub_suites = self.db.fetch_using(db_model.suite,"parent",suite.id)
             suite_data = self.get_suite_content(cases)
             suite_data = suite_data + self.get_suite_content(sub_suites)
             structure = {
@@ -582,10 +582,10 @@ class db_report:
         pass
 
     def map_constants(self):
-        engines  = self.db.fetch_using_generic(model.engine)
-        platform = self.db.fetch_using_generic(model.platform)
-        tags = self.db.fetch_using_generic(model.tag)
-        index_type = self.db.fetch_using_generic(model.index_type)
+        engines  = self.db.fetch_using_generic(db_model.engine)
+        platform = self.db.fetch_using_generic(db_model.platform)
+        tags = self.db.fetch_using_generic(db_model.tag)
+        index_type = self.db.fetch_using_generic(db_model.index_type)
         for i in tags:
             self.TAG_MAP[i.id] = i.name
             pass
