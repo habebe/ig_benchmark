@@ -23,6 +23,8 @@ class operation(operations.operation):
             source = os.path.join(os.path.dirname(os.path.abspath(__file__)),"basic_suite")
             try:
                 shutil.copytree(source,self.path)
+                self.mkdir(os.path.join(self.path,"working"))
+                self.mkdir(os.path.join(self.path,"root"))
             except:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 message = "{0}".format(exc_obj)

@@ -240,6 +240,7 @@ class operation:
 operations = {}
 import run_operation
 import init_operation
+import build_operation
 
 if 0:
     import query
@@ -267,6 +268,7 @@ def populate():
     if len(operations) == 0:
         add_operation(run_operation.operation())
         add_operation(init_operation.operation())
+        add_operation(build_operation.operation())
         pass
     pass
 
