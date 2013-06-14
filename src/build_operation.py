@@ -14,14 +14,14 @@ class operation(operations.operation):
     def __init__(self):
         operations.operation.__init__(self,"build",False)
         self.add_argument("help",None,None,"show help message")
-        self.add_argument("path","str",None,"the path to create where the template will be generated.")
-        self.add_argument("project","str",None,"name of the project.")
-        self.add_argument("template","str",None,"the name of the template file.")
+        self.add_argument("path","str",None,"template pathes")
+        self.add_argument("working","str",None,"working path")
         self.add_argument("verbose","int",0,"verbose level")
+        self.builds = []
         pass
 
 
-    def run(self,path,options):
+    def __run__(self,path,options):
         cwd = os.getcwd()
         os.chdir(path)
         exe = "ant"
@@ -33,36 +33,39 @@ class operation(operations.operation):
         return True
 
 
+    def __build__(self,path,project,template):
+        parser = ig_template.Schema.Parser(template,path)
+        parser.setVerboseLevel(self.verbose)
+        parser.setProjectPath(path)
+        parser.setProject(project)
+        parser.parse()
+        self.__run__(path,["clean"])
+        self.__run__(path,["all"])
+        return True
+        
     def operate(self):
         if operations.operation.operate(self):
-            errorMessage = None
             self.path = self.getSingleOption("path")
-            self.project = self.getSingleOption("project")
-            self.template = self.getSingleOption("template")
+            self.working = self.getSingleOption("working")
+            
             if self.path == None:
                 self.error("Path is not given.")
                 return False
-
-            if self.template == None:
-                self.error("Template file is not given.")
-                return False
             
-            if self.project == None:
-                self.error("Project is not given.")
-                return False
-            
-            parser = ig_template.Schema.Parser(self.template,self.path)
-            parser.setVerboseLevel(self.verbose)
-            parser.setProjectPath(self.path)
-            parser.setProject(self.project)
-            parser.parse()
-
-            self.run(self.path,["clean"])
-            self.run(self.path,["all"])
-            
-            if errorMessage == None:
+            listing = os.listdir(self.path)
+            self.templates = []
+            for i in listing:
+                if i.endswith(".xml"):
+                    project_item = i[:len(i)-4]
+                    path_item = os.path.abspath(os.path.join(self.path,i))
+                    working_item = os.path.join(self.working,project_item)
+                    self.templates.append([path_item,project_item,working_item])
+                    pass
                 pass
-            else:
-                self.error(errorMessage)
-                return False
+            
+            
+            print self.working
+            for i in self.templates:
+                self.__build__(i[2],i[1],i[0])
+                pass
             return True
