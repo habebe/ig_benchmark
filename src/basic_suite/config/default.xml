@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConfigList>
+  <Config name="default">
+    <Lockserver address="127.0.0.1"/>
+    <Host address="127.0.0.1">
+      <Disk location="./data"/>
+    </Host>
+    <Host address="127.0.0.2">
+      <Disk location="./data2"/>
+    </Host>
+  </Config>
+</ConfigList>

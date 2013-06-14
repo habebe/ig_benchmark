@@ -3,21 +3,18 @@
 import os
 import sys
 import getopt
-import operations
-
-print os.path.dirname(__file__)
-raw_input()
-
+import ig_benchmark
 
 def main():
     if len(sys.argv) < 2:
-        operations.usage(__file__)
+        ig_benchmark.usage(__file__)
         sys.exit(1)
         pass
     operation_name = sys.argv[1].lower()
-    operation = operations._operation_(operation_name)
+    operation = ig_benchmark.operations._operation_(operation_name)
     if operation == None:
-        operations.usage(__file__)
+        print "Error: Unknown operation type '{0}'".format(operation_name)
+        ig_benchmark.usage(__file__)
     else:
         if operation.parse(sys.argv[2:]):
             operation.operate()

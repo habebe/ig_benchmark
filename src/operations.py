@@ -2,8 +2,8 @@ import getopt
 import sys
 import types
 import math
-import db_objects
 import os
+import db
 
 class argument:
     def __init__(self,name,dataType,defaultValue,description):
@@ -68,7 +68,7 @@ def _hilite_(string, status, bold):
 class operation:
     def operation_update_database(self,db):
         if self.is_runnable():
-            return db.create_unique_object(db_objects.model.case_type,
+            return db.create_unique_object(db_model.case_type,
                                            "name",self.name,
                                            description=self.__doc__
                                            )
@@ -77,16 +77,21 @@ class operation:
     def get_name(self):
         return self.__module__.split(".")[1]
 
-    def __init__(self):
-        self.name = self.get_name()
+    def __init__(self,name,useDefaultArguments=True):
+        if name == None:
+            self.name = self.get_name()
+        else:
+            self.name = name
         self.options = []
         self.arguments = []
         self.argumentDescription = []
         self.optionsMap = {}
         self.argumentMap = {}
-        self.add_argument("help",None,None,"show help message")
-        self.add_argument("verbose","int",0,"verbose level")
-        self.add_argument("name","str",db_objects.db.default_name,"name of benchmark")
+        if useDefaultArguments:
+            self.add_argument("help",None,None,"show help message")
+            self.add_argument("verbose","int",0,"verbose level")
+            self.add_argument("name","str",db.db.default_name,"name of benchmark")
+            pass
         pass
 
     def add_argument(self,name,dataType,defaultValue,description):
@@ -233,45 +238,35 @@ class operation:
 
 
 operations = {}
-import query
-import show_tables
-import run
-import delete_tag
-import report
-#import show_db_config
-import graph_create
-import graph_v_ingest
-import graph_v_search
-import make_graph500
-import generate_elist
-import graph_e_ingest
-import graph_e_standard_ingest
-import graph_e_ring_ingest
-import graph_navigate_ring
-import graph_navigate_dense
+import run_operation
+import init_operation
 
+if 0:
+    import query
+    import show_tables
+    import run
+    import delete_tag
+    import report
+#import show_db_config
+    import graph_create
+    import graph_v_ingest
+    import graph_v_search
+    import make_graph500
+    import generate_elist
+    import graph_e_ingest
+    import graph_e_standard_ingest
+    import graph_e_ring_ingest
+    import graph_navigate_ring
+    import graph_navigate_dense
+    
 def add_operation(operation):
     operations[operation.name] = operation
     pass
 
 def populate():
     if len(operations) == 0:
-        add_operation(query.operation())
-        add_operation(show_tables.operation())
-        add_operation(delete_tag.operation())
-        add_operation(report.operation())
-        add_operation(run.operation())
-        #add_operation(show_db_config.operation())
-        add_operation(graph_create.operation())
-        add_operation(graph_v_ingest.operation())
-        add_operation(graph_v_search.operation())
-        add_operation(make_graph500.operation())
-        add_operation(generate_elist.operation())
-        add_operation(graph_e_ingest.operation())
-        add_operation(graph_e_standard_ingest.operation())
-        add_operation(graph_e_ring_ingest.operation())
-        add_operation(graph_navigate_ring.operation())
-        add_operation(graph_navigate_dense.operation())
+        add_operation(run_operation.operation())
+        add_operation(init_operation.operation())
         pass
     pass
 
@@ -281,4 +276,6 @@ def _operation_(name):
     if operations.has_key(name):
         return operations[name]
     return None
+
+
 

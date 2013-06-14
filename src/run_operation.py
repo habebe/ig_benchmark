@@ -4,17 +4,16 @@ import getopt
 import shutil
 import math
 import datetime
-import db_objects
-import base
+import operations
 import imp
 import suite_info
 import json
+import db
 
-class operation(base.operation):
+class operation(operations.operation):
     "Runs a set of suite organized tests."
     def __init__(self):
-        base.operation.__init__(self)
-        self.add_argument("problem_size","str",'mini',"problem size [mini | small | medium | large | huge]")
+        operations.operation.__init__(self,"run")
         self.add_argument("tag","str",datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),"tag the benchmark run,default is current time stamp.")
         self.add_argument("update",None,None,"Update the test suite without running it.")
         pass
@@ -94,7 +93,7 @@ class operation(base.operation):
             _data = self.__get_case_data__(case_info,"data",None)
             _table_view = self.__get_case_data__(case_info,"table_view",None)
             _plot_view = self.__get_case_data__(case_info,"plot_view",None)
-            _operation_object_ = base._operation_(_type)
+            _operation_object_ = operations._operation_(_type)
             if _operation_object_:
                 if _operation_object_.is_runnable():
                     case_type_object = _operation_object_.operation_update_database(self.db)
@@ -163,7 +162,7 @@ class operation(base.operation):
         return (None,None)
             
     def operate(self):
-        if base.operation.operate(self):
+        if operations.operation.operate(self):
             self.dbname = self.getSingleOption("name")
             self.tag = self.getSingleOption("tag")
             self.problem_size = self.getSingleOption("problem_size")

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Template namespace="com.objectivity.benchmark.basic">
+  <Definitions>
+    
+    <Vertex name="Node">
+      <Fields>
+        <Integer name="id"/>
+      </Fields>
+      <Data scale="1">
+        <Object><![CDATA[
+          data.id = Integer.sequence(start=0)
+          ]]></Object>
+      </Data>
+    </Vertex>
+    
+    <Edge name="Relationship">
+      <Data scale="2">
+        <Connections>
+          <Connection type="1" weight="0">
+            <Origin name="Node" selection="sequence(repeat=True)" fieldIndex="0"/>
+            <Target name="Node" selection="uniform()" fieldIndex="0"/>
+          </Connection>
+        </Connections>
+      </Data>
+    </Edge>  
+  </Definitions>
+  
+  <Indicies>
+    <GraphIndex class="Node" unique="true">
+      <Field name="id"/>
+    </GraphIndex>
+  </Indicies>
+  
+</Template>
