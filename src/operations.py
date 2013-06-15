@@ -108,13 +108,16 @@ class operation:
         try:
             if self.verbose > 1:
                 print "Creating directory ",name
-            os.mkdir(name)
+                pass
+            if not os.path.exists(name):
+                os.mkdir(name)
+                pass
+            return True
         except Exception,e:
-            if self.verbose > 1:
-                print e
-            pass
-        pass
-        
+            self.error(e)
+            return False
+        return True
+    
     def output_string(self,string, status, bold):
         return _hilite_(string,status,bold)
 

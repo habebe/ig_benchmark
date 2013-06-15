@@ -104,7 +104,7 @@ class Disk:
         pass
 
     def __repr__(self):
-        buf = "\tDisk {0}\n".format(self.location)
+        buf = "\tDisk:{0}".format(self.location)
         return buf
 
     def build(self):
