@@ -14,8 +14,7 @@ class operation(operations.operation):
     def __init__(self):
         operations.operation.__init__(self,"build",False)
         self.add_argument("help",None,None,"show help message")
-        self.add_argument("path","str",None,"template pathes")
-        self.add_argument("working","str",None,"working path")
+        self.add_argument("root","str",None,"Root path.")
         self.add_argument("verbose","int",0,"verbose level")
         self.builds = []
         pass
@@ -45,26 +44,25 @@ class operation(operations.operation):
         
     def operate(self):
         if operations.operation.operate(self):
-            self.path = self.getSingleOption("path")
-            self.working = self.getSingleOption("working")
-            
-            if self.path == None:
-                self.error("Path is not given.")
+            self.root = self.getSingleOption("root")
+            if self.root == None:
+                self.error("Root path is not given.")
                 return False
-            
-            listing = os.listdir(self.path)
+            template_path = os.path.join(self.root,"templates")
+            working_path  = os.path.join(self.root,"working")
+            listing = os.listdir(template_path)
             self.templates = []
             for i in listing:
                 if i.endswith(".xml"):
                     project_item = i[:len(i)-4]
-                    path_item = os.path.abspath(os.path.join(self.path,i))
-                    working_item = os.path.join(self.working,project_item)
+                    path_item = os.path.abspath(os.path.join(template_path,i))
+                    working_item = os.path.join(working_path,project_item)
                     self.templates.append([path_item,project_item,working_item])
                     pass
                 pass
             
             
-            print self.working
+            print working_path
             for i in self.templates:
                 self.__build__(i[2],i[1],i[0])
                 pass
