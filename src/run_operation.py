@@ -9,6 +9,8 @@ import imp
 import suite_info
 import json
 import db
+import db_model
+import build_operation
 
 class operation(operations.operation):
     "Runs a set of suite organized tests."
@@ -40,14 +42,14 @@ class operation(operations.operation):
                 
 
     def __update_suite_info_database__(self,_suite_info_,parent_suite_id=-1):
-        suites = self.db.fetch_using_generic(db_objects.model.suite,
+        suites = self.db.fetch_using_generic(db_model.suite,
                                              name=_suite_info_.get_name(),
                                              parent=parent_suite_id
                                              )
         assert (len(suites) <= 1)
         suite = None
         if (len(suites) == 0):
-            suite = self.db.create_unique_object(db_objects.model.suite,
+            suite = self.db.create_unique_object(db_model.suite,
                                                  "name",_suite_info_.get_name(),
                                                  parent=parent_suite_id
                                                  )
@@ -72,7 +74,7 @@ class operation(operations.operation):
         return default_value
 
     def __update_case_database__(self,_suite_info_,parent_suite=None):
-        suites = self.db.fetch_using_generic(db_objects.model.suite,
+        suites = self.db.fetch_using_generic(db_model.suite,
                                              id=_suite_info_.id
                                              )
         assert (len(suites) == 1)
@@ -97,14 +99,14 @@ class operation(operations.operation):
             if _operation_object_:
                 if _operation_object_.is_runnable():
                     case_type_object = _operation_object_.operation_update_database(self.db)
-                    case_objects =  self.db.fetch_using_generic(db_objects.model.case,
+                    case_objects =  self.db.fetch_using_generic(db_model.case,
                                                                 name=_name,
                                                                 parent=_suite_info_.id,
                                                                 )
                     assert (len(case_objects) <= 1)
                     case_object = None
                     if len(case_objects) == 0:
-                        case_object = self.db.create_object(db_objects.model.case,
+                        case_object = self.db.create_object(db_model.case,
                                                             name=_name,
                                                             parent=suite.id)
                     else:
@@ -147,7 +149,7 @@ class operation(operations.operation):
         return (suite,size)
         
     def setup(self):
-        self.db = db_objects.db(self.dbname)
+        self.db = db.db(self.dbname)
         self.db.create_database()
         self.suite_name = "."
         if self.arguments and len(self.arguments):
@@ -165,11 +167,14 @@ class operation(operations.operation):
         if operations.operation.operate(self):
             self.dbname = self.getSingleOption("name")
             self.tag = self.getSingleOption("tag")
-            self.problem_size = self.getSingleOption("problem_size")
             self.update_only = self.hasOption("update")
             (suite_object,size) = self.setup()
             if suite_object and (not self.update_only):
-                return suite_object.run(self.db,tag=self.tag,problem_size=self.problem_size,verbose=0)
+                rootPath = suite_object.path
+                build = build_operation.operation()
+                build.parse(["--root","{0}".format(rootPath)])
+                build.operate()
+                return suite_object.run(self.db,tag=self.tag,verbose=0)
             return False
         return True
 
