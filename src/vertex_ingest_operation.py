@@ -48,8 +48,6 @@ class operation(operations.operation):
         threads      = self.getOption_data(data,"threads")
         txsize       = self.getOption_data(data,"txsize")
         cache        = self.getOption_data(data,"cache")
-                
-        #page_size = self.setup_page_sizes(page_size)
         self.tag_object = self.db.create_unique_object(db_model.tag,"name",kwargs["tag"],
                                                        timestamp=self.db.now_string(True))
         
@@ -57,103 +55,6 @@ class operation(operations.operation):
         self.run_operation(rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize)
         pass
 
-    def __run_operation(self):
-        for engine in self.engine_objects:
-            for _index in self.index: 
-                for _page_size in self.page_size:
-                    for _v_size in self.graph_size:
-                        for _threads in self.threads:
-                            for _txsize in self.txsize:
-                                for _cache in self.cache:
-                                    print 
-                                    self.initialize_property(engine.name)
-                                    self.propertyFile.setInitCache(_cache[0])
-                                    self.propertyFile.setMaxCache(_cache[1])
-                                    self.propertyFile.properties["IG.PageSize"] = _page_size
-                                    if self.new_graph:
-                                        self.ig_setup_placement(engine.name,self.propertyFile)
-                                        _s_ = "\tgraph(%s) create index:%s page_size:%d"%(engine.name,_index,_page_size)
-                                        print self.output_string(_s_,base.Colors.Blue,True),
-                                        sys.stdout.flush()
-                                        start = time.clock()
-                                        self.ig_run(engine.name,self.propertyFile,"create",_index)
-                                        elapsed = (time.clock() - start)
-                                        print self.output_string(str(elapsed),base.Colors.Red,False)
-                                        self.ig_setup_Location(engine.name,self.propertyFile)
-                                        pass
-                                    _s_ = "\tgraph(%s) ingest vertices index:%s page_size:%d tx_size:%d size:%d diskmap:%s"%(engine.name,_index,_page_size,_txsize,_v_size,str(self.diskmap))
-                                    print self.output_string(_s_,base.Colors.Blue,True)
-                                    profileName = "test.profile"
-                                    if self.tag_object:
-                                        profileName = self.tag_object.name +"_"+ self.db.now_string(True)  +"_"+ ".profile"
-                                        profileName = profileName.replace(" ","_")
-                                        pass
-                                    self.ig_v_ingest(engine.name,self.propertyFile,_index,_v_size,0,_threads,_txsize,profileName,self.map_oid)
-                                    if self.case_object:
-                                        f = file(profileName,"r")
-                                        line = f.readline()
-                                        data = eval(line)
-                                        platform_object = self.db.create_unique_object(db_objects.model.platform,"name",data["os"])
-                                        index_object = self.db.create_unique_object(db_objects.model.index_type,"name",_index)
-                                    
-                                        case_data_object = self.db.create_object(db_objects.model.case_data,
-                                                                                 timestamp=self.db.now_string(True),
-                                                                                 case_id=self.case_object.id,
-                                                                                 tag_id=self.tag_object.id,
-                                                                                 engine_id=engine.id,
-                                                                                 size=data["size"],
-                                                                                 time=data["time"],
-                                                                                 memory_init=data["mem_init"],
-                                                                                 memory_used=data["mem_used"],
-                                                                                 memory_committed=data["mem_committed"],
-                                                                                 memory_max=data["mem_max"],
-                                                                                 op_size=data["opsize"],
-                                                                                 rate=data["rate"],
-                                                                                 page_size=_page_size,
-                                                                                 cache_init=self.propertyFile.getInitCache(),
-                                                                                 cache_max=self.propertyFile.getMaxCache(),
-                                                                                 tx_size=_txsize,
-                                                                                 platform_id=platform_object.id,
-                                                                                 threads=_threads,
-                                                                                 index_id=index_object.id,
-                                                                                 status=1
-                                                                                 )
-                                        if self.diskmap:
-                                            case_data_object.setDataValue("diskmap",self.diskmap)
-                                            self.db.update(case_data_object)
-                                            pass
-                                        case_data_key = case_data_object.generateKey()
-                                        case_data_stat_object = self.db.fetch_using_generic(db_objects.model.case_data_stat,
-                                                                                            key=case_data_key,
-                                                                                            case_id=self.case_object.id
-                                                                                            )
-                                        if (len(case_data_stat_object) == 0):
-                                            case_data_stat_object = self.db.create_unique_object(db_objects.model.case_data_stat,
-                                                                                                 "key",case_data_key,
-                                                                                                 case_id=self.case_object.id
-                                                                                                 )
-                                        else:
-                                            case_data_stat_object = case_data_stat_object[0]
-                                            pass
-                                        case_data_stat_object.addCounter()
-                                        case_data_stat_object.setRateStat(data["rate"])
-                                        case_data_stat_object.setTimeStat(data["time"])
-                                        case_data_stat_object.setMemInitStat(data["mem_init"])
-                                        case_data_stat_object.setMemUsedStat(data["mem_used"])
-                                        case_data_stat_object.setMemCommittedStat(data["mem_committed"])
-                                        case_data_stat_object.setMemMaxStat(data["mem_max"])
-                                        self.db.update(case_data_stat_object)
-                                        f.close()
-                                        os.remove(profileName)
-                                        pass
-                                    pass
-                                pass
-                            pass
-                        pass
-                    pass
-                pass
-            pass
-        pass
 
     def getConfigList(self,rootPath,name):
         configParameter = name.split(":")
@@ -238,7 +139,8 @@ class operation(operations.operation):
                      "-property",propertyName,
                      "-threads",str(threads),
                      "-tx_size",str(txSize),
-                     "-ops","V"
+                     "-ops","V",
+                     "-no_map"
                      ]
         print string.join(arguments)
         p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr)

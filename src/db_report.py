@@ -353,7 +353,6 @@ class db_report:
     
     def copy_web_template(self,location):
         source = os.path.abspath(os.path.dirname(__file__))
-        source = os.path.dirname(source)
         try:
             shutil.rmtree(location)
         except:

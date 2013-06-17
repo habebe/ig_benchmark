@@ -262,6 +262,7 @@ import build_operation
 import bootstrap_operation
 import dataset_operation
 import vertex_ingest_operation
+import report_operation
 
 if 0:
     import query
@@ -293,6 +294,7 @@ def populate():
         add_operation(bootstrap_operation.operation())
         add_operation(dataset_operation.operation())
         add_operation(vertex_ingest_operation.operation())
+        add_operation(report_operation.operation())
         pass
     pass
 

@@ -389,7 +389,7 @@ class case_data_stat(db_object):
 
     def engine(self):
         value = self.engine_id()
-        if self.mapper:
+        if self.mapper and self.mapper.ENGINE_MAP.has_key(value):
             return self.mapper.ENGINE_MAP[value]
         return str(value)
 

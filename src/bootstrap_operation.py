@@ -32,7 +32,7 @@ class operation(operations.operation):
         arguments = ["java","-jar",os.path.join(self.working_path,project,"build","bootstrap.jar"),"-overwrite","-property",propertyFile.fileName]
         if noIndex:
             arguments.append("-no_index")
-        self.output_string("\t"+string.join(arguments),True,False)
+        print self.output_string("\t"+string.join(arguments),True,False)
         p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr)
         p.wait()
         os.chdir(cwd)
