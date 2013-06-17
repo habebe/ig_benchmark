@@ -169,8 +169,9 @@ class operation(operations.operation):
             self.tag = self.getSingleOption("tag")
             self.update_only = self.hasOption("update")
             (suite_object,size) = self.setup()
+            db_model.suite.RootSuite = suite_object
             if suite_object and (not self.update_only):
-                rootPath = suite_object.path
+                rootPath = os.path.dirname(suite_object.path)
                 build = build_operation.operation()
                 build.parse(["--root","{0}".format(rootPath)])
                 build.operate()

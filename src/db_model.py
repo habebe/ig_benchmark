@@ -178,6 +178,8 @@ class suite(_name_description_):
         ("problem_size",db_types.TEXT),
         ("default_problem_size",db_types.TEXT)
         ]
+
+    RootSuite = None
     
     def __init__(self):
         _name_description_.__init__(self)

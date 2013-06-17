@@ -4,6 +4,7 @@ import types
 import math
 import os
 import db
+import db_model
 
 class argument:
     def __init__(self,name,dataType,defaultValue,description):
@@ -101,6 +102,20 @@ class operation:
         return
 
 
+    def setup_page_sizes(self,_page_size):
+        page_size = []
+        for i in _page_size:
+            if i < 10:
+                self.warn("Invalid page_size (%d) given must be between [10,16], setting to 10"%(i))
+                i = 10
+            elif i > 16:
+                self.warn("Invalid page_size (%d) given must be between [10,16], setting to 16"%(i))
+                i = 16
+                pass
+            page_size.append(pow(2,i))
+            pass
+        return page_size
+    
     def is_runnable(self):
         return False
 

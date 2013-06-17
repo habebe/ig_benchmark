@@ -8,6 +8,9 @@ import config
 import dataset_operation
 import string
 import subprocess
+import db
+import db_model
+
 
 class operation(operations.operation):
     def __init__(self):
@@ -27,34 +30,31 @@ class operation(operations.operation):
         self.cache = None
         pass
 
+    def is_runnable(self):
+        return True
+
     def run(self,db,suite,case,data,**kwargs):
         self.case_object = case
         self.verbose = kwargs["verbose"]
         self.db = db
-        
-        if suite_problem_size:
-            current_problem_size = suite_problem_size[problem_size]
-            if current_problem_size:
-                for i in current_problem_size:
-                    data[str(i)] = current_problem_size[str(i)]
-                    pass
-                pass
-            pass
-        self.diskmap = self.getOption_data(data,"diskmap")
-        self.hostmap = self.getOption_data(data,"hostmap")
-        self.engine = self.getOption_data(data,"engine")
-        self.index = self.getOption_data(data,"index")
-        self.page_size = self.getOption_data(data,"page_size")
-        self.txsize = self.getOption_data(data,"txsize")
-        self.threads = self.getOption_data(data,"threads")
-        self.new_graph = self.getOption_data(data,"new")
-        self.graph_size = self.getOption_data(data,"size")
-        self.cache = self.getOption_data(data,"cache")
-        self.setup_engine_objects()
-        self.setup_page_sizes(self.page_size)
-        self.tag_object = self.db.create_unique_object(db_objects.model.tag,"name",kwargs["tag"],
+
+        template     = self.getOption_data(data,"template")
+        configNames  = self.getOption_data(data,"config")
+        page_size    = self.getOption_data(data,"page_size")
+        cache        = self.getOption_data(data,"cache")
+        useIndex     = self.getOption_data(data,"use_index")
+        new_graph    = self.getOption_data(data,"new")
+        size         = self.getOption_data(data,"size")
+        threads      = self.getOption_data(data,"threads")
+        txsize       = self.getOption_data(data,"txsize")
+        cache        = self.getOption_data(data,"cache")
+                
+        #page_size = self.setup_page_sizes(page_size)
+        self.tag_object = self.db.create_unique_object(db_model.tag,"name",kwargs["tag"],
                                                        timestamp=self.db.now_string(True))
-        self.run_operation()
+        
+        rootPath = os.path.dirname(db_model.suite.RootSuite.path)
+        self.run_operation(rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize)
         pass
 
     def __run_operation(self):
@@ -208,7 +208,7 @@ class operation(operations.operation):
         eventsName  = os.path.join(working_path,"write.events")
         profileName = os.path.join(working_path,"write.profile")
         events  = []
-        profile = []
+        profile = None
         if os.path.exists(eventsName):
             f = file(eventsName,"r")
             line = f.readline()
@@ -223,7 +223,7 @@ class operation(operations.operation):
             line = f.readline()
             while len(line):
                 line = eval(line)
-                profile.append(line)
+                profile = line
                 line = f.readline()
                 pass
             pass
@@ -245,10 +245,8 @@ class operation(operations.operation):
         p.wait()
         os.chdir(cwd)
         (events,profile) = self.readProfileData(working_path)
-        print events
-        print profile
-        self.removeProfileData(working_path)
-        return True
+        #self.removeProfileData(working_path)
+        return (events,profile) 
 
     
     def run_operation(self,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize):
@@ -309,12 +307,60 @@ class operation(operations.operation):
                                             print self.output_string("Generating bootstrap propertyFile {0}".format(propertyFile.fileName),True,False)
                                             propertyFile.setLockServer(configObject.lockserver)
                                             propertyFile.setBootPath(bootPath)
-                                            if page_size:
-                                                propertyFile.setPageSize(pow(2,int(iPageSize)))
-                                                pass
                                             propertyFile.generate()
+                                            propertyFile.setPageSize(pow(2,iPageSize))
                                             jar = os.path.join(working_path,iTemplate,"build","write.jar")
-                                            self.__run__(working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize)
+                                            (events,profile) = self.__run__(working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize)
+                                            if self.case_object:
+                                                platform_object = self.db.create_unique_object(db_model.platform,"name",profile["os"])
+                                                if iUseIndex:
+                                                    index_object = self.db.create_unique_object(db_model.index_type,"name","gr")
+                                                else:
+                                                    index_object = self.db.create_unique_object(db_model.index_type,"name","none")
+                                                    pass
+                                                profile_data = profile["data"]
+                                                case_data_object = self.db.create_object(db_model.case_data,
+                                                                                         timestamp=self.db.now_string(True),
+                                                                                         case_id=self.case_object.id,
+                                                                                         tag_id=self.tag_object.id,
+                                                                                         size=profile_data["size"],
+                                                                                         time=profile["time"],
+                                                                                         memory_init=profile["memInit"],
+                                                                                         memory_used=profile["memUsed"],
+                                                                                         memory_committed=profile["memCommitted"],
+                                                                                         memory_max=profile["memMax"],
+                                                                                         rate=profile_data["rate"],
+                                                                                         page_size=iPageSize,
+                                                                                         cache_init=propertyFile.getInitCache(),
+                                                                                         cache_max=propertyFile.getMaxCache(),
+                                                                                         tx_size=iTxSize,
+                                                                                         platform_id=platform_object.id,
+                                                                                         threads=iThreads,
+                                                                                         index_id=index_object.id,
+                                                                                         status=1
+                                                                                         )
+                                                case_data_key = case_data_object.generateKey()
+                                                case_data_stat_object = self.db.fetch_using_generic(db_model.case_data_stat,
+                                                                                                    key=case_data_key,
+                                                                                                    case_id=self.case_object.id
+                                                                                                    )
+                                                if (len(case_data_stat_object) == 0):
+                                                    case_data_stat_object = self.db.create_unique_object(db_model.case_data_stat,
+                                                                                                         "key",case_data_key,
+                                                                                                         case_id=self.case_object.id
+                                                                                                         )
+                                                else:
+                                                    case_data_stat_object = case_data_stat_object[0]
+                                                    pass
+                                                case_data_stat_object.addCounter()
+                                                case_data_stat_object.setRateStat(profile_data["rate"])
+                                                case_data_stat_object.setTimeStat(profile["time"])
+                                                case_data_stat_object.setMemInitStat(profile["memInit"])
+                                                case_data_stat_object.setMemUsedStat(profile["memUsed"])
+                                                case_data_stat_object.setMemCommittedStat(profile["memCommitted"])
+                                                case_data_stat_object.setMemMaxStat(profile["memMax"])
+                                                self.db.update(case_data_stat_object)
+                                                pass
                                             pass
                                         pass
                                     pass
