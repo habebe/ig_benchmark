@@ -21,7 +21,7 @@ class operation(operations.operation):
         self.add_argument("config","str",None,"specify the config file name and the name of the config using the format config_file_name:config_name.")
         self.add_argument("project","str",None,"name of the project.")
         self.add_argument("page_size","str",None,"page size to use.")
-        self.add_argument("no_index",None,None,"Do not create index.")
+        self.add_argument("no_index","bool",None,"Do not create index.")
         self.add_argument("containers","int","0","Create containers with this size.")
         pass
 

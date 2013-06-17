@@ -48,7 +48,7 @@ class operation(operations.operation):
             if self.root == None:
                 self.error("Root path is not given.")
                 return False
-            self.root = os.path.dirname(os.path.abspath(self.root))
+            self.root = os.path.abspath(self.root)
             template_path = os.path.join(self.root,"templates")
             working_path  = os.path.join(self.root,"working")
             listing = os.listdir(template_path)
