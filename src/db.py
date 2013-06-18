@@ -10,9 +10,11 @@ import json
 import imp
 from db_types import *
 import platform
+import socket
 
 class db:
-    default_name = platform.uname()[0].lower()
+    #default_name = platform.uname()[0].lower()
+    default_name = socket.gethostname().lower()
     schema_classes = [
         db_model.engine,
         db_model.os_type,
