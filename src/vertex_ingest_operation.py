@@ -24,6 +24,7 @@ class operation(operations.operation):
         self.add_argument("size","eval",100000,"number of vertices.")
         self.add_argument("threads","eval",1,"number of threads")
         self.add_argument("txsize","eval",10000,"transaction size")
+        self.add_argument("txlimit","int",-1,"limit the number of transactions to a given number")
         self.add_argument("cache","eval",(1000,500000),"cache size given as a set of tuplets (in kB) (init,max) or [(init_1,max_1),(init_2,max_2),.....]")
         self.tag_object = None
         self.case_object = None
@@ -47,12 +48,13 @@ class operation(operations.operation):
         size         = self.getOption_data(data,"size")
         threads      = self.getOption_data(data,"threads")
         txsize       = self.getOption_data(data,"txsize")
+        txlimit      = self.getOption_data(data,"txlimit")
         cache        = self.getOption_data(data,"cache")
         self.tag_object = self.db.create_unique_object(db_model.tag,"name",kwargs["tag"],
                                                        timestamp=self.db.now_string(True))
         
         rootPath = os.path.dirname(db_model.suite.RootSuite.path)
-        self.run_operation(rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize)
+        self.run_operation(rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
         pass
 
 
@@ -106,8 +108,8 @@ class operation(operations.operation):
         pass
 
     def readProfileData(self,working_path):
-        eventsName  = os.path.join(working_path,"write.events")
-        profileName = os.path.join(working_path,"write.profile")
+        eventsName  = os.path.join(working_path,"benchmark.events")
+        profileName = os.path.join(working_path,"benchmark.profile")
         events  = []
         profile = None
         if os.path.exists(eventsName):
@@ -130,15 +132,17 @@ class operation(operations.operation):
             pass
         return (events,profile)
         
-    def __run__(self,working_path,jar,dataset,propertyName,threads,txSize):
+    def __run__(self,working_path,jar,dataset,propertyName,threads,txSize,txLimit):
         cwd = os.getcwd()
         os.chdir(working_path)
         self.removeProfileData(working_path)
         arguments = ["java","-jar",jar,
-                     "-dataset",dataset,
+                     "-op_path",dataset,
                      "-property",propertyName,
                      "-threads",str(threads),
                      "-tx_size",str(txSize),
+                     "-tx_type","write",
+                     "-tx_limit",str(txLimit),
                      "-ops","V",
                      "-no_map"
                      ]
@@ -151,7 +155,7 @@ class operation(operations.operation):
         return (events,profile) 
 
     
-    def run_operation(self,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize):
+    def run_operation(self,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit):
         if template == None:
             self.error("template is required but not given.")
             return False
@@ -191,7 +195,9 @@ class operation(operations.operation):
                                                 "--no_index",(not iUseIndex),
                                                 "--containers",1
                                                 ])
-                                            bootstrap.operate()
+                                            if not bootstrap.operate():
+                                                self.error("Failed to bootstrap database.")
+                                                return False
                                             configObject = self.getConfigList(rootPath,iConfig)
                                             if not configObject:
                                                 self.error("Unable to get Config object")
@@ -211,8 +217,8 @@ class operation(operations.operation):
                                             propertyFile.setBootPath(bootPath)
                                             propertyFile.generate()
                                             propertyFile.setPageSize(pow(2,iPageSize))
-                                            jar = os.path.join(working_path,iTemplate,"build","write.jar")
-                                            (events,profile) = self.__run__(working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize)
+                                            jar = os.path.join(working_path,iTemplate,"build","benchmark.jar")
+                                            (events,profile) = self.__run__(working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize,txlimit)
                                             if self.case_object:
                                                 platform_object = self.db.create_unique_object(db_model.platform,"name",profile["os"])
                                                 if iUseIndex:
@@ -289,8 +295,9 @@ class operation(operations.operation):
             size = self.getOption("size")
             threads = self.getOption("threads")
             txsize = self.getOption("txsize")
+            txlimit = self.getSingleOption("txlimit")
             cache = self.getOption("cache")
-            self.run_operation(rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize)
+            self.run_operation(rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
         return False
 
         
