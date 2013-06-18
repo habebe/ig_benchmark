@@ -5,6 +5,7 @@ import math
 import os
 import db
 import db_model
+import socket
 
 class argument:
     def __init__(self,name,dataType,defaultValue,description):
@@ -67,6 +68,43 @@ def _hilite_(string, status, bold):
 
 
 class operation:
+    Options = None
+    Hostname = socket.gethostname()
+    
+    @classmethod
+    def LoadOptions(self,rootPath):
+        if self.Options == None:
+            optionsPath = os.path.join(rootPath,"options.py")
+            if os.path.exists(optionsPath):
+                f = file(optionsPath,"r")
+                line = f.read()
+                try:
+                    self.Options = eval(line)
+                    print self.Options
+                except:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    message  = "\n\tFile:%s\n"%(optionsPath)
+                    message += "\tLine number:%d\n"%(exc_tb.tb_lineno)
+                    message += "\t%s\n"%(str(exc_obj))
+                    self.error(message)
+                    pass
+                pass
+            pass
+        if self.Options == None:
+            self.Options = {}
+            pass
+        pass
+
+    @classmethod
+    def GetConfigPath(self,rootPath):
+        self.LoadOptions(rootPath)
+        if self.Options.has_key(self.Hostname):
+            options = self.Options[self.Hostname]
+            if options.has_key("config"):
+                return os.path.join(rootPath,options["config"])
+        return os.path.join(rootPath,"config")
+
+
     def operation_update_database(self,db):
         if self.is_runnable():
             return db.create_unique_object(db_model.case_type,
@@ -136,10 +174,12 @@ class operation:
     def output_string(self,string, status, bold):
         return _hilite_(string,status,bold)
 
+    @classmethod
     def error(self,message):
         print >> sys.stderr,_hilite_("[Error]",False,True),_hilite_(message,False,False)
         return
 
+    @classmethod
     def warn(self,message):
         print >> sys.stderr,_hilite_("[Warning]",False,True),_hilite_(message,False,False)
         return

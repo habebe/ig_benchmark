@@ -122,7 +122,7 @@ class operation(operations.operation):
                 self.configName = configParameter[1]
                 pass
             if rootPath:
-                self.configFileName = os.path.join(rootPath,"config",self.configFileName)
+                self.configFileName = os.path.join(self.GetConfigPath(rootPath),self.configFileName)
                 pass
             try:
                 configList = config.parse(self.configFileName,self)
