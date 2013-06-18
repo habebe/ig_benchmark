@@ -184,90 +184,92 @@ class operation(operations.operation):
                                 for iUseIndex in useIndex:
                                     for iThreads in threads:
                                         for iTxSize in txsize:
-                                            print "Create new graph"
-                                            print "template {0} config {1} page_size {2} cache {3} useIndex {4} size {5} threads {6} txsize {7}".format(iTemplate,iConfig,iPageSize,iCache,iUseIndex,iSize,iThreads,iTxSize) 
-                                            bootstrap = bootstrap_operation.operation()
-                                            bootstrap.parse([
-                                                "--root","{0}".format(rootPath),
-                                                "--config",iConfig,
-                                                "--project",iTemplate,
-                                                "--page_size",iPageSize,
-                                                "--no_index",(not iUseIndex),
-                                                "--containers",1
-                                                ])
-                                            if not bootstrap.operate():
-                                                self.error("Failed to bootstrap database.")
-                                                return False
-                                            configObject = self.getConfigList(rootPath,iConfig)
-                                            if not configObject:
-                                                self.error("Unable to get Config object")
-                                                return False
-                                            project_path = os.path.join(working_path,iTemplate)
-                                            bootPath = None
-                                            if len(configObject.hosts) > 0:
-                                                if len(configObject.hosts[0].disks) > 0:
-                                                    p = os.path.join(configObject.hosts[0].disks[0].location,iTemplate)
-                                                    print self.output_string("Bootpath:{0}".format(p),True,True)
-                                                    bootPath = p
+                                            for iTxLimit in txlimit:
+                                                print "Create new graph"
+                                                print "template {0} config {1} page_size {2} cache {3} useIndex {4} size {5} threads {6} txsize {7}".format(iTemplate,iConfig,iPageSize,iCache,iUseIndex,iSize,iThreads,iTxSize) 
+                                                bootstrap = bootstrap_operation.operation()
+                                                bootstrap.parse([
+                                                    "--root","{0}".format(rootPath),
+                                                    "--config",iConfig,
+                                                    "--project",iTemplate,
+                                                    "--page_size",iPageSize,
+                                                    "--no_index",(not iUseIndex),
+                                                    "--containers",1
+                                                    ])
+                                                if not bootstrap.operate():
+                                                    self.error("Failed to bootstrap database.")
+                                                    return False
+                                                configObject = self.getConfigList(rootPath,iConfig)
+                                                if not configObject:
+                                                    self.error("Unable to get Config object")
+                                                    return False
+                                                project_path = os.path.join(working_path,iTemplate)
+                                                bootPath = None
+                                                if len(configObject.hosts) > 0:
+                                                    if len(configObject.hosts[0].disks) > 0:
+                                                        p = os.path.join(configObject.hosts[0].disks[0].location,iTemplate)
+                                                        print self.output_string("Bootpath:{0}".format(p),True,True)
+                                                        bootPath = p
+                                                        pass
                                                     pass
-                                                pass
-                                            propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","vertex_ingest.properties"))
-                                            print self.output_string("Generating bootstrap propertyFile {0}".format(propertyFile.fileName),True,False)
-                                            propertyFile.setLockServer(configObject.lockserver)
-                                            propertyFile.setBootPath(bootPath)
-                                            propertyFile.generate()
-                                            propertyFile.setPageSize(pow(2,iPageSize))
-                                            jar = os.path.join(working_path,iTemplate,"build","benchmark.jar")
-                                            (events,profile) = self.__run__(working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize,txlimit)
-                                            if self.case_object:
-                                                platform_object = self.db.create_unique_object(db_model.platform,"name",profile["os"])
-                                                if iUseIndex:
-                                                    index_object = self.db.create_unique_object(db_model.index_type,"name","gr")
-                                                else:
-                                                    index_object = self.db.create_unique_object(db_model.index_type,"name","none")
+                                                propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","vertex_ingest.properties"))
+                                                print self.output_string("Generating bootstrap propertyFile {0}".format(propertyFile.fileName),True,False)
+                                                propertyFile.setLockServer(configObject.lockserver)
+                                                propertyFile.setBootPath(bootPath)
+                                                propertyFile.generate()
+                                                propertyFile.setPageSize(pow(2,iPageSize))
+                                                jar = os.path.join(working_path,iTemplate,"build","benchmark.jar")
+                                                (events,profile) = self.__run__(working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize,iTxLimit)
+                                                if self.case_object:
+                                                    platform_object = self.db.create_unique_object(db_model.platform,"name",profile["os"])
+                                                    if iUseIndex:
+                                                        index_object = self.db.create_unique_object(db_model.index_type,"name","gr")
+                                                    else:
+                                                        index_object = self.db.create_unique_object(db_model.index_type,"name","none")
+                                                        pass
+                                                    profile_data = profile["data"]
+                                                    case_data_object = self.db.create_object(db_model.case_data,
+                                                                                             timestamp=self.db.now_string(True),
+                                                                                             case_id=self.case_object.id,
+                                                                                             tag_id=self.tag_object.id,
+                                                                                             size=profile_data["size"],
+                                                                                             time=profile["time"],
+                                                                                             memory_init=profile["memInit"],
+                                                                                             memory_used=profile["memUsed"],
+                                                                                             memory_committed=profile["memCommitted"],
+                                                                                             memory_max=profile["memMax"],
+                                                                                             rate=profile_data["rate"],
+                                                                                             page_size=iPageSize,
+                                                                                             cache_init=propertyFile.getInitCache(),
+                                                                                             cache_max=propertyFile.getMaxCache(),
+                                                                                             tx_size=iTxSize,
+                                                                                             platform_id=platform_object.id,
+                                                                                             threads=iThreads,
+                                                                                             index_id=index_object.id,
+                                                                                             status=1
+                                                                                             )
+                                                    case_data_key = case_data_object.generateKey()
+                                                    case_data_stat_object = self.db.fetch_using_generic(db_model.case_data_stat,
+                                                                                                        key=case_data_key,
+                                                                                                        case_id=self.case_object.id
+                                                                                                        )
+                                                    if (len(case_data_stat_object) == 0):
+                                                        case_data_stat_object = self.db.create_unique_object(db_model.case_data_stat,
+                                                                                                             "key",case_data_key,
+                                                                                                             case_id=self.case_object.id
+                                                                                                             )
+                                                    else:
+                                                        case_data_stat_object = case_data_stat_object[0]
+                                                        pass
+                                                    case_data_stat_object.addCounter()
+                                                    case_data_stat_object.setRateStat(profile_data["rate"])
+                                                    case_data_stat_object.setTimeStat(profile["time"])
+                                                    case_data_stat_object.setMemInitStat(profile["memInit"])
+                                                    case_data_stat_object.setMemUsedStat(profile["memUsed"])
+                                                    case_data_stat_object.setMemCommittedStat(profile["memCommitted"])
+                                                    case_data_stat_object.setMemMaxStat(profile["memMax"])
+                                                    self.db.update(case_data_stat_object)
                                                     pass
-                                                profile_data = profile["data"]
-                                                case_data_object = self.db.create_object(db_model.case_data,
-                                                                                         timestamp=self.db.now_string(True),
-                                                                                         case_id=self.case_object.id,
-                                                                                         tag_id=self.tag_object.id,
-                                                                                         size=profile_data["size"],
-                                                                                         time=profile["time"],
-                                                                                         memory_init=profile["memInit"],
-                                                                                         memory_used=profile["memUsed"],
-                                                                                         memory_committed=profile["memCommitted"],
-                                                                                         memory_max=profile["memMax"],
-                                                                                         rate=profile_data["rate"],
-                                                                                         page_size=iPageSize,
-                                                                                         cache_init=propertyFile.getInitCache(),
-                                                                                         cache_max=propertyFile.getMaxCache(),
-                                                                                         tx_size=iTxSize,
-                                                                                         platform_id=platform_object.id,
-                                                                                         threads=iThreads,
-                                                                                         index_id=index_object.id,
-                                                                                         status=1
-                                                                                         )
-                                                case_data_key = case_data_object.generateKey()
-                                                case_data_stat_object = self.db.fetch_using_generic(db_model.case_data_stat,
-                                                                                                    key=case_data_key,
-                                                                                                    case_id=self.case_object.id
-                                                                                                    )
-                                                if (len(case_data_stat_object) == 0):
-                                                    case_data_stat_object = self.db.create_unique_object(db_model.case_data_stat,
-                                                                                                         "key",case_data_key,
-                                                                                                         case_id=self.case_object.id
-                                                                                                         )
-                                                else:
-                                                    case_data_stat_object = case_data_stat_object[0]
-                                                    pass
-                                                case_data_stat_object.addCounter()
-                                                case_data_stat_object.setRateStat(profile_data["rate"])
-                                                case_data_stat_object.setTimeStat(profile["time"])
-                                                case_data_stat_object.setMemInitStat(profile["memInit"])
-                                                case_data_stat_object.setMemUsedStat(profile["memUsed"])
-                                                case_data_stat_object.setMemCommittedStat(profile["memCommitted"])
-                                                case_data_stat_object.setMemMaxStat(profile["memMax"])
-                                                self.db.update(case_data_stat_object)
                                                 pass
                                             pass
                                         pass
@@ -295,7 +297,7 @@ class operation(operations.operation):
             size = self.getOption("size")
             threads = self.getOption("threads")
             txsize = self.getOption("txsize")
-            txlimit = self.getSingleOption("txlimit")
+            txlimit = self.getOption("txlimit")
             cache = self.getOption("cache")
             self.run_operation(rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
         return False
