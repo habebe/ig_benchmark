@@ -573,7 +573,6 @@ class case_data(db_object):
         ("cache_max",db_types.INTEGER),
         
         ("platform_id",db_types.INTEGER),
-        ("machine_id",db_types.INTEGER),
         ("threads",db_types.INTEGER),
         ("index_id",db_types.INTEGER),
         
@@ -606,7 +605,6 @@ class case_data(db_object):
         self.cache_max = None
         
         self.platform_id = None
-        self.machine_id = None
         self.threads = None
         self.index_id = None
         
@@ -625,7 +623,7 @@ class case_data(db_object):
             [self.case_id,self.engine_id,
              self.size,self.op_size,self.tx_size,
              self.page_size,self.cache_init,self.cache_max,
-             self.platform_id,self.machine_id,self.threads,self.index_id,
+             self.platform_id,self.threads,self.index_id,
              self.data
              ]
             )
@@ -670,7 +668,7 @@ class case_data(db_object):
             self.case_id,self.engine_id,
             self.size,self.op_size,self.tx_size,
             self.page_size,self.cache_init,self.cache_max,
-            self.platform_id,self.machine_id,self.threads,self.index_id,
+            self.platform_id,self.threads,self.index_id,
             self.time,self.rate,
             self.memory_init,self.memory_used,self.memory_committed,self.memory_max,
             self.data ) = self_data
@@ -691,7 +689,7 @@ class case_data(db_object):
             self.case_id,self.engine_id,
             self.size,self.op_size,self.tx_size,
             self.page_size,self.cache_init,self.cache_max,
-            self.platform_id,self.machine_id,self.threads,self.index_id,
+            self.platform_id,self.threads,self.index_id,
             self.time,self.rate,
             self.memory_init,self.memory_used,self.memory_committed,self.memory_max,
             json.dumps(self.data))
