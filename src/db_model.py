@@ -394,18 +394,18 @@ class case_data_stat(db_object):
 
     def threads(self):
         self.generate_key_data()
-        value = self.key_data[10]
+        value = self.key_data[9]
         return value
 
     def index_type_id(self):
         self.generate_key_data()
-        value = self.key_data[11]
+        value = self.key_data[10]
         return value
 
     def object_data(self,name,default_value):
         self.generate_key_data()
-        if len(self.key_data) >= 13:
-            data = self.key_data[12]
+        if len(self.key_data) >= 12:
+            data = self.key_data[11]
             if data.has_key(name):
                 return data[name]
             pass
