@@ -136,17 +136,7 @@ class operation(operations.operation):
             for iTemplate in template:
                 for iSize in size:
                     working_path = self.setupWorkingPath(rootPath,iVersion)
-                    print "Generating template {0} dataset {1} size {2}".format(iTemplate,working_path,iSize)
-                    dataset = dataset_operation.operation()
-                    dataset.parse([
-                        "--root","{0}".format(rootPath),
-                        "--template",iTemplate,
-                        "--size",iSize,
-                        "--source",working_path,
-                        "--target",working_path,
-                        "--vertex_only"
-                        ])
-                    dataset.operate()
+                    generateDatasetPath = self.GenerateDataset(rootPath,iTemplate,iSize,True)
                     for iConfig in configNames:
                         for iPageSize in page_size:
                             for iCache in cache:
@@ -200,7 +190,7 @@ class operation(operations.operation):
                                                 propertyFile.generate()
                                                 propertyFile.setPageSize(pow(2,iPageSize))
                                                 jar = os.path.join(working_path,iTemplate,"build","benchmark.jar")
-                                                (events,profile) = self.__run__(engine,working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize,iTxLimit)
+                                                (events,profile) = self.__run__(engine,working_path,jar,generateDatasetPath,propertyFile.fileName,iThreads,iTxSize,iTxLimit)
                                                 if self.case_object:
                                                     platform_object = self.db.create_unique_object(db_model.platform,"name",self.db.hostname(),type=profile["os"])
                                                     if iUseIndex:

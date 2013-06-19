@@ -106,6 +106,43 @@ class operation:
         return os.path.join(rootPath,"config")
 
 
+    @classmethod
+    def GenerateDataset(self,rootPath,template,size,vertexOnly):
+        dataPath = os.path.join(rootPath,"working","_dataset_")
+        if not os.path.exists(dataPath):
+            os.mkdir(dataPath)
+            pass
+        dataPath = os.path.join(dataPath,"{0}.{1}.{2}".format(template,size,vertexOnly))
+        if not os.path.exists(dataPath):
+            os.mkdir(dataPath)
+            print "Generating dataset for {0} size {1} {2}".format(template,size,dataPath)
+            import dataset_operation
+            dataset = dataset_operation.operation()
+            sourcePath = os.path.join(rootPath,"data_source")
+            if vertexOnly:
+                dataset.parse([
+                    "--root","{0}".format(rootPath),
+                    "--template",template,
+                    "--size",size,
+                    "--source",sourcePath,
+                    "--target",dataPath,
+                    "--vertex_only"
+                    ])
+            else:
+                dataset.parse([
+                    "--root","{0}".format(rootPath),
+                    "--template",template,
+                    "--size",size,
+                    "--source",sourcePath,
+                    "--target",dataPath,
+                    ])
+                pass
+            dataset.operate()
+        else:
+            print "Reusing previously generated dataset for {0} size {1} {2}".format(template,size,dataPath)
+            pass
+        return dataPath
+    
     def getConfigList(self,rootPath,name):
         configParameter = name.split(":")
         configFileName = configParameter[0]
