@@ -128,7 +128,8 @@ class operation:
 
     def getEnv(self,ig_version,ig_home):
         env = os.environ.copy()
-        if platform.system().lower().find("darwin") >= 0:
+        platform_name = platform.system().lower()
+        if platform_name.find("darwin") >= 0:
             env["IG_HOME"] = os.path.join(ig_home,"mac86_64")
             if env.has_key("DYLD_LIBRARY_PATH"):
                 env["DYLD_LIBRARY_PATH"] = "{0}:{1}".format(os.path.join(env["IG_HOME"],"lib"),env["DYLD_LIBRARY_PATH"])
@@ -140,8 +141,22 @@ class operation:
             else:
                 env["PATH"] = os.path.join(env["IG_HOME"],"bin")
                 pass
+            pass
+        elif platform_name.find("linux") >= 0:
+            env["IG_HOME"] = os.path.join(ig_home,"linux86_64")
+            if env.has_key("LD_LIBRARY_PATH"):
+                env["LD_LIBRARY_PATH"] = "{0}:{1}".format(os.path.join(env["IG_HOME"],"lib"),env["LD_LIBRARY_PATH"])
+            else:
+                env["LD_LIBRARY_PATH"] = os.path.join(env["IG_HOME"],"lib")
+                pass
+            if env.has_key("PATH"):
+                env["PATH"] = "{0}:{1}".format(os.path.join(env["IG_HOME"],"bin"),env["PATH"])
+            else:
+                env["PATH"] = os.path.join(env["IG_HOME"],"bin")
+                pass
+            pass
         else:
-            assert 0
+            assert 0,"Unknown platform."
             pass
         return env
     
