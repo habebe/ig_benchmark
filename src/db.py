@@ -28,6 +28,10 @@ class db:
         db_model.case_data_stat
         ]
 
+    @classmethod
+    def hostname(self):
+        return socket.gethostname()
+    
     def now_string(self,includeSeconds=True):
         if includeSeconds:
             return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -50,17 +54,22 @@ class db:
         cursor.execute(statement)
         return statement
 
-    def __init__(self):
+    def __init__(self,name=None):
         if not os.path.exists("db"):
             try:
                 os.mkdir("db")
             except:
                 pass
             pass
-        self.name = self.default_name
+        if name == None:
+            self.name = self.default_name
+        else:
+            self.name = name
+            pass
         if not self.name.endswith(".db"):
             self.name += ".db"
             pass
+        print "Using DB: ",self.name
         self.connection = None
         pass
 

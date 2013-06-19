@@ -202,7 +202,7 @@ class operation(operations.operation):
                                                 jar = os.path.join(working_path,iTemplate,"build","benchmark.jar")
                                                 (events,profile) = self.__run__(engine,working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize,iTxLimit)
                                                 if self.case_object:
-                                                    platform_object = self.db.create_unique_object(db_model.platform,"name",profile["os"])
+                                                    platform_object = self.db.create_unique_object(db_model.platform,"name",self.db.hostname(),type=profile["os"])
                                                     if iUseIndex:
                                                         index_object = self.db.create_unique_object(db_model.index_type,"name","gr")
                                                     else:

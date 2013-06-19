@@ -156,9 +156,27 @@ class case_type(_name_description_):
     pass
 
 class platform(_name_):
+    _property_ = _name_._property_ + [ ("type",db_types.TEXT) ]
+    
     def __init__(self):
         _name_.__init__(self)
+        self.type = None
         pass
+    
+    def set_data(self,data,removeUnicode = True):
+        if removeUnicode:
+            data = self.remove_unicode(data)
+            pass
+        parent_data = data[:(len(_name_._property_))]
+        self_data = data[(len(_name_._property_)):]
+        o = _name_.set_data(self,parent_data)
+        (self.type) = self_data
+        return self
+
+    def get_data(self,includeId):
+        data = _name_.get_data(self,includeId)
+        data += (self.type)
+        return data
     pass
 
 class index_type(_name_):
@@ -171,12 +189,7 @@ class index_type(_name_):
 class suite(_name_description_):
     _property_ = _name_description_._property_ + [
         ("path",db_types.TEXT),
-        ("parent",db_types.INTEGER),
-        ("timestamp",db_types.DATETIME),
-        ("runs",db_types.INTEGER),
-        ("adhoc",db_types.INTEGER),
-        ("problem_size",db_types.TEXT),
-        ("default_problem_size",db_types.TEXT)
+        ("parent",db_types.INTEGER)
         ]
 
     RootSuite = None
@@ -185,24 +198,12 @@ class suite(_name_description_):
         _name_description_.__init__(self)
         self.path = None
         self.parent = -1
-        self.timestamp = None
-        self.runs = 0
-        self.adhoc = None
-        self.problem_size = None
-        self.default_problem_size = None
         self.t_cases = []
         self.t_sub_suites = []
         pass
 
     def object_type(self):
         return "suite"
-
-    def addRun(self,timestamp):
-        self.timestamp = timestamp
-        if self.runs == None:
-            self.runs = 0
-        self.runs += 1
-        pass
 
     def run(self,db,**kwargs):
         print "suite: ",self.name
@@ -219,9 +220,7 @@ class suite(_name_description_):
             pass
         return
 
-    def get_problem_size(self):
-        return json.loads(self.problem_size)
-    
+       
     def set_data(self,data,removeUnicode = True):
         if removeUnicode:
             data = self.remove_unicode(data)
@@ -229,12 +228,12 @@ class suite(_name_description_):
         parent_data = data[:(len(_name_description_._property_))]
         self_data = data[(len(_name_description_._property_)):]
         o = _name_description_.set_data(self,parent_data)
-        (self.path,self.parent,self.timestamp,self.runs,self.adhoc,self.problem_size,self.default_problem_size) = self_data
+        (self.path,self.parent) = self_data
         return self
 
     def get_data(self,includeId):
         data = _name_description_.get_data(self,includeId)
-        data += (self.path,self.parent,self.timestamp,self.runs,self.adhoc,self.problem_size,self.default_problem_size)
+        data += (self.path,self.parent)
         return data
     pass
 
