@@ -132,21 +132,21 @@ class operation(operations.operation):
             self.error("InfiniteGraph version is not given.")
             return False
         rootPath = os.path.abspath(rootPath)
-        for iTemplate in template:
-            for iSize in size:
-                working_path = self.setupWorkingPath(rootPath,iVersion)
-                print "Generating template {0} dataset {1} size {2}".format(iTemplate,working_path,iSize)
-                dataset = dataset_operation.operation()
-                dataset.parse([
-                    "--root","{0}".format(rootPath),
-                    "--template",iTemplate,
-                    "--size",iSize,
-                    "--source",working_path,
-                    "--target",working_path,
-                    "--vertex_only"
-                    ])
-                dataset.operate()
-                for iVersion in ig_version:
+        for iVersion in ig_version:
+            for iTemplate in template:
+                for iSize in size:
+                    working_path = self.setupWorkingPath(rootPath,iVersion)
+                    print "Generating template {0} dataset {1} size {2}".format(iTemplate,working_path,iSize)
+                    dataset = dataset_operation.operation()
+                    dataset.parse([
+                        "--root","{0}".format(rootPath),
+                        "--template",iTemplate,
+                        "--size",iSize,
+                        "--source",working_path,
+                        "--target",working_path,
+                        "--vertex_only"
+                        ])
+                    dataset.operate()
                     for iConfig in configNames:
                         for iPageSize in page_size:
                             for iCache in cache:
