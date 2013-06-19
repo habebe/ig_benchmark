@@ -6,6 +6,8 @@ import os
 import db
 import db_model
 import socket
+import config
+import platform
 
 class argument:
     def __init__(self,name,dataType,defaultValue,description):
@@ -80,7 +82,6 @@ class operation:
                 line = f.read()
                 try:
                     self.Options = eval(line)
-                    print self.Options
                 except:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     message  = "\n\tFile:%s\n"%(optionsPath)
@@ -103,6 +104,147 @@ class operation:
             if options.has_key("config"):
                 return os.path.join(rootPath,options["config"])
         return os.path.join(rootPath,"config")
+
+
+    def getConfigList(self,rootPath,name):
+        configParameter = name.split(":")
+        configFileName = configParameter[0]
+        if not configFileName.endswith(".xml"):
+            configFileName = configFileName + ".xml"
+            pass
+        configName = None
+        if len(configParameter) == 2:
+            configName = configParameter[1]
+            pass
+        configFileName = os.path.join(self.GetConfigPath(rootPath),configFileName)
+        configList = config.parse(configFileName,self)
+        try:
+            configList = config.parse(configFileName,self)
+        except:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            self.error("Error while parsing config file. {0}".format(exc_obj))
+            return None
+        return (configList,configName)
+
+    def getEnv(self,ig_version,ig_home):
+        env = os.environ.copy()
+        if platform.system().lower().find("darwin") >= 0:
+            env["IG_HOME"] = os.path.join(ig_home,"mac86_64")
+            if env.has_key("DYLD_LIBRARY_PATH"):
+                env["DYLD_LIBRARY_PATH"] = "{0}:{1}".format(os.path.join(env["IG_HOME"],"lib"),env["DYLD_LIBRARY_PATH"])
+            else:
+                env["DYLD_LIBRARY_PATH"] = os.path.join(env["IG_HOME"],"lib")
+                pass
+            if env.has_key("PATH"):
+                env["PATH"] = "{0}:{1}".format(os.path.join(env["IG_HOME"],"bin"),env["PATH"])
+            else:
+                env["PATH"] = os.path.join(env["IG_HOME"],"bin")
+                pass
+        else:
+            assert 0
+            pass
+        return env
+    
+    def setupWorkingPath(self,rootPath,version):
+        working_path = os.path.join(rootPath,"working",version)
+        if not os.path.exists(working_path):
+            os.mkdir(working_path)
+            pass
+        return working_path
+     
+    def getEngine(self,configList,ig_version):
+        engine = None
+        i = 0
+        for i in configList.engines:
+            if i.version == ig_version:
+                return i
+            pass
+        return None
+    
+    def getConfigObject(self,rootPath,name):
+        configListData = self.getConfigList(rootPath,name)
+        configObject = None
+        if configListData:
+            (configList,configName) = configListData
+            if configList and (len(configList.configs) > 0):
+                configParameter = name.split(":")
+                configFileName = configParameter[0]
+                if configName:
+                    for i in configList.configs:
+                        if i.name == configName:
+                            configObject = i
+                            pass
+                        pass
+                    if configObject == None:
+                        self.error("Unable to find config with a name {0}.".format(self.configName))
+                        return None
+                    pass
+                else:
+                    configObject = configList.configs[0]
+                    pass
+                pass
+            pass
+        if configObject:
+            return (configList,configObject)
+        return None
+    
+    def removeProfileData(self,working_path):
+        events  = os.path.join(working_path,"benchmark.events")
+        profile = os.path.join(working_path,"benchmark.profile")
+        if os.path.exists(events):
+            os.remove(events)
+            pass
+        if os.path.exists(profile):
+            os.remove(profile)
+            pass
+        pass
+
+    def readProfileData(self,working_path):
+        eventsName  = os.path.join(working_path,"benchmark.events")
+        profileName = os.path.join(working_path,"benchmark.profile")
+        events  = []
+        profile = None
+        if os.path.exists(eventsName):
+            f = file(eventsName,"r")
+            line = f.readline()
+            while len(line):
+                line = eval(line)
+                events.append(line)
+                line = f.readline()
+                pass
+            pass
+        if os.path.exists(profileName):
+            f = file(profileName,"r")
+            line = f.readline()
+            while len(line):
+                line = eval(line)
+                profile = line
+                line = f.readline()
+                pass
+            pass
+        return (events,profile)
+    
+    def run_benchmark(self,working_path,template,dataset,propertyName,threads,txSize,txLimit):
+        cwd = os.getcwd()
+        os.chdir(working_path)
+        jar = os.path.join(working_path,template,"build","benchmark.jar")
+        arguments = ["java","-jar",jar,
+                     "-op_path",dataset,
+                     "-property",propertyName,
+                     "-threads",str(threads),
+                     "-tx_size",str(txSize),
+                     "-tx_type","write",
+                     "-tx_limit",str(txLimit),
+                     "-ops","V",
+                     "-no_map"
+                     ]
+        print string.join(arguments)
+        p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr)
+        p.wait()
+        os.chdir(cwd)
+        (events,profile) = self.readProfileData(working_path)
+        return (events,profile) 
+    
 
 
     def operation_update_database(self,db):

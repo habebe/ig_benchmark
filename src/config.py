@@ -3,10 +3,13 @@ import sys
 
 class ConfigList:
     CONFIG = "Config"
+    ENGINE = "Engine"
+    ENGINELIST = "EngineList"
     
     def __init__(self,dom_object):
         self.dom_object = dom_object
         self.configs = []
+        self.engines = []
         pass
 
     def __repr__(self):
@@ -14,9 +17,23 @@ class ConfigList:
         for i in self.configs:
             buf += "\t{0}".format(str(i))
             pass
+        for i in self.engines:
+            buf += "\t{0}".format(str(i))
+            pass
         return buf
 
     def build(self):
+        elements = self.dom_object.getElementsByTagName(self.ENGINELIST)
+        if len(elements):
+            elements = elements[0]
+            elements = self.dom_object.getElementsByTagName(self.ENGINE)
+            for element in elements:
+                engine = Engine(element)
+                if not engine.build():
+                    return False
+                self.engines.append(engine)
+                pass
+            pass
         elements = self.dom_object.getElementsByTagName(self.CONFIG)
         for element in elements:
             config = Config(element)
@@ -24,6 +41,26 @@ class ConfigList:
                 return False
             self.configs.append(config)
             pass
+        return True
+    pass
+
+class Engine:
+    VERSION = "version"
+    HOME    = "home"
+    
+    def __init__(self,dom_object):
+        self.dom_object = dom_object
+        self.version = None
+        self.home = None
+        pass
+
+    def __repr__(self):
+        buf = "Engine {0}: root:{1}\n".format(self.version,self.home)
+        return buf
+
+    def build(self):
+        self.version = self.dom_object.getAttribute(self.VERSION)
+        self.home    = self.dom_object.getAttribute(self.HOME)
         return True
     pass
 

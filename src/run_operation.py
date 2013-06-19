@@ -149,7 +149,7 @@ class operation(operations.operation):
         return (suite,size)
         
     def setup(self):
-        self.db = db.db(self.dbname)
+        self.db = db.db()
         self.db.create_database()
         self.suite_name = "."
         if self.arguments and len(self.arguments):
@@ -172,9 +172,9 @@ class operation(operations.operation):
             db_model.suite.RootSuite = suite_object
             if suite_object and (not self.update_only):
                 rootPath = os.path.dirname(suite_object.path)
-                build = build_operation.operation()
-                build.parse(["--root","{0}".format(rootPath)])
-                build.operate()
+                #build = build_operation.operation()
+                #build.parse(["--root","{0}".format(rootPath)])
+                #build.operate()
                 return suite_object.run(self.db,tag=self.tag,verbose=0)
             return False
         return True

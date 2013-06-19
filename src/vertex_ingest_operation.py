@@ -26,6 +26,7 @@ class operation(operations.operation):
         self.add_argument("txsize","eval",10000,"transaction size")
         self.add_argument("txlimit","int",-1,"limit the number of transactions to a given number")
         self.add_argument("cache","eval",(1000,500000),"cache size given as a set of tuplets (in kB) (init,max) or [(init_1,max_1),(init_2,max_2),.....]")
+        self.add_argument("ig_version","str",None,"InfiniteGraph version to use.")
         self.tag_object = None
         self.case_object = None
         self.cache = None
@@ -50,54 +51,17 @@ class operation(operations.operation):
         txsize       = self.getOption_data(data,"txsize")
         txlimit      = self.getOption_data(data,"txlimit")
         cache        = self.getOption_data(data,"cache")
+        ig_version   = self.getOption_data(data,"ig_version")
         self.tag_object = self.db.create_unique_object(db_model.tag,"name",kwargs["tag"],
                                                        timestamp=self.db.now_string(True))
         
         rootPath = os.path.dirname(db_model.suite.RootSuite.path)
-        self.run_operation(rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
+        self.run_operation(ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
         pass
 
-
-    def getConfigList(self,rootPath,name):
-        configParameter = name.split(":")
-        configFileName = configParameter[0]
-        if not configFileName.endswith(".xml"):
-            configFileName = configFileName + ".xml"
-            pass
-        configName = None
-        if len(configParameter) == 2:
-            configName = configParameter[1]
-            pass
-        configFileName = os.path.join(self.GetConfigPath(rootPath),configFileName)
-        configList = config.parse(configFileName,self)
-        try:
-            configList = config.parse(configFileName,self)
-        except:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            self.error("Error while parsing config file. {0}".format(exc_obj))
-            return None
-        configObject = None
-        if configList and len(configList.configs) > 0:
-            if configName:
-                for i in configList.configs:
-                    if i.name == configName:
-                        configObject = i
-                        pass
-                    pass
-                if configObject == None:
-                    self.error("Unable to find config with a name {0}.".format(self.configName))
-                    return None
-                pass
-            else:
-                configObject = configList.configs[0]
-                pass
-            pass
-        return configObject
-
-
     def removeProfileData(self,working_path):
-        events  = os.path.join(working_path,"write.events")
-        profile = os.path.join(working_path,"write.profile")
+        events  = os.path.join(working_path,"benchmark.events")
+        profile = os.path.join(working_path,"benchmark.profile")
         if os.path.exists(events):
             os.remove(events)
             pass
@@ -131,10 +95,11 @@ class operation(operations.operation):
             pass
         return (events,profile)
         
-    def __run__(self,working_path,jar,dataset,propertyName,threads,txSize,txLimit):
+    def __run__(self,engine,working_path,jar,dataset,propertyName,threads,txSize,txLimit):
         cwd = os.getcwd()
         os.chdir(working_path)
         self.removeProfileData(working_path)
+        env = self.getEnv(engine.version,engine.home)
         arguments = ["java","-jar",jar,
                      "-op_path",dataset,
                      "-property",propertyName,
@@ -146,37 +111,42 @@ class operation(operations.operation):
                      "-no_map"
                      ]
         print string.join(arguments)
-        p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr)
+        p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
         p.wait()
         os.chdir(cwd)
+        if p.returncode != 0:
+            return None
         (events,profile) = self.readProfileData(working_path)
         #self.removeProfileData(working_path)
         return (events,profile) 
 
     
-    def run_operation(self,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit):
+    def run_operation(self,ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit):
         if template == None:
             self.error("template is required but not given.")
             return False
         if configNames == None:
             self.error("config name is required but not given.")
             return False
+        if ig_version == None:
+            self.error("InfiniteGraph version is not given.")
+            return False
         rootPath = os.path.abspath(rootPath)
-        if new_graph:
-            for iTemplate in template:
-                for iSize in size:
-                    working_path = os.path.join(rootPath,"working")
-                    print "Generating template {0} dataset {1} size {2}".format(iTemplate,working_path,iSize)
-                    dataset = dataset_operation.operation()
-                    dataset.parse([
-                        "--root","{0}".format(rootPath),
-                        "--template",iTemplate,
-                        "--size",iSize,
-                        "--source",working_path,
-                        "--target",working_path,
-                        "--vertex_only"
-                        ])
-                    dataset.operate()
+        for iTemplate in template:
+            for iSize in size:
+                working_path = self.setupWorkingPath(rootPath,iVersion)
+                print "Generating template {0} dataset {1} size {2}".format(iTemplate,working_path,iSize)
+                dataset = dataset_operation.operation()
+                dataset.parse([
+                    "--root","{0}".format(rootPath),
+                    "--template",iTemplate,
+                    "--size",iSize,
+                    "--source",working_path,
+                    "--target",working_path,
+                    "--vertex_only"
+                    ])
+                dataset.operate()
+                for iVersion in ig_version:
                     for iConfig in configNames:
                         for iPageSize in page_size:
                             for iCache in cache:
@@ -184,41 +154,53 @@ class operation(operations.operation):
                                     for iThreads in threads:
                                         for iTxSize in txsize:
                                             for iTxLimit in txlimit:
-                                                print "Create new graph"
-                                                print "template {0} config {1} page_size {2} cache {3} useIndex {4} size {5} threads {6} txsize {7}".format(iTemplate,iConfig,iPageSize,iCache,iUseIndex,iSize,iThreads,iTxSize) 
-                                                bootstrap = bootstrap_operation.operation()
-                                                bootstrap.parse([
-                                                    "--root","{0}".format(rootPath),
-                                                    "--config",iConfig,
-                                                    "--project",iTemplate,
-                                                    "--page_size",iPageSize,
-                                                    "--no_index",(not iUseIndex),
-                                                    "--containers",1
-                                                    ])
-                                                if not bootstrap.operate():
-                                                    self.error("Failed to bootstrap database.")
+                                                if new_graph:
+                                                    print "Create new graph"
+                                                    print "template {0} config {1} page_size {2} cache {3} useIndex {4} size {5} threads {6} txsize {7}".format(iTemplate,iConfig,iPageSize,iCache,iUseIndex,iSize,iThreads,iTxSize) 
+                                                    bootstrap = bootstrap_operation.operation()
+                                                    bootstrap.parse([
+                                                        "--root","{0}".format(rootPath),
+                                                        "--config",iConfig,
+                                                        "--project",iTemplate,
+                                                        "--page_size",iPageSize,
+                                                        "--no_index",(not iUseIndex),
+                                                        "--containers",1,
+                                                        "--ig_version",iVersion
+                                                        ])
+                                                    if not bootstrap.operate():
+                                                        self.error("--Failed to bootstrap database.")
+                                                        return False
+                                                    pass
+                                                configPair = self.getConfigObject(rootPath,iConfig)
+                                                if configPair == None:
+                                                    self.error("Unable to get configuration {0}".format(iConfig))
                                                     return False
-                                                configObject = self.getConfigList(rootPath,iConfig)
+                                                (configList,configObject) = configPair
                                                 if not configObject:
                                                     self.error("Unable to get Config object")
                                                     return False
+                                                engine = self.getEngine(configList,iVersion)
+                                                if engine == None:
+                                                    self.error("Unable to find configuration for InfiniteGraph version '{0}' using config {1}.".format(ig_version,iConfig))
+                                                    return False
+                                                engine_object = self.db.create_unique_object(db_model.engine,"name",engine.version,description=engine.version)
                                                 project_path = os.path.join(working_path,iTemplate)
                                                 bootPath = None
                                                 if len(configObject.hosts) > 0:
                                                     if len(configObject.hosts[0].disks) > 0:
-                                                        p = os.path.join(configObject.hosts[0].disks[0].location,iTemplate)
+                                                        p = os.path.join(configObject.hosts[0].disks[0].location,iVersion,iTemplate)
                                                         print self.output_string("Bootpath:{0}".format(p),True,True)
                                                         bootPath = p
                                                         pass
                                                     pass
                                                 propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","vertex_ingest.properties"))
-                                                print self.output_string("Generating bootstrap propertyFile {0}".format(propertyFile.fileName),True,False)
+                                                print self.output_string("Generating ingest propertyFile {0}".format(propertyFile.fileName),True,False)
                                                 propertyFile.setLockServer(configObject.lockserver)
                                                 propertyFile.setBootPath(bootPath)
                                                 propertyFile.generate()
                                                 propertyFile.setPageSize(pow(2,iPageSize))
                                                 jar = os.path.join(working_path,iTemplate,"build","benchmark.jar")
-                                                (events,profile) = self.__run__(working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize,iTxLimit)
+                                                (events,profile) = self.__run__(engine,working_path,jar,working_path,propertyFile.fileName,iThreads,iTxSize,iTxLimit)
                                                 if self.case_object:
                                                     platform_object = self.db.create_unique_object(db_model.platform,"name",profile["os"])
                                                     if iUseIndex:
@@ -230,6 +212,7 @@ class operation(operations.operation):
                                                     case_data_object = self.db.create_object(db_model.case_data,
                                                                                              timestamp=self.db.now_string(True),
                                                                                              case_id=self.case_object.id,
+                                                                                             engine_id=engine_object.id,
                                                                                              tag_id=self.tag_object.id,
                                                                                              size=profile_data["size"],
                                                                                              time=profile["time"],
@@ -289,16 +272,17 @@ class operation(operations.operation):
             rootPath = self.getSingleOption("root")
             template = self.getOption("template")
             configNames   = self.getOption("config")
-            page_size   = self.getOption("page_size")
-            cache   = self.getOption("cache")
-            useIndex = self.getOption("use_index")
-            new_graph = self.getSingleOption("new")
-            size = self.getOption("size")
-            threads = self.getOption("threads")
-            txsize = self.getOption("txsize")
-            txlimit = self.getOption("txlimit")
-            cache = self.getOption("cache")
-            self.run_operation(rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
+            page_size     = self.getOption("page_size")
+            cache         = self.getOption("cache")
+            useIndex      = self.getOption("use_index")
+            new_graph     = self.getSingleOption("new")
+            size          = self.getOption("size")
+            threads       = self.getOption("threads")
+            txsize        = self.getOption("txsize")
+            txlimit       = self.getOption("txlimit")
+            cache         = self.getOption("cache")
+            ig_version    = self.getOption("ig_version")
+            self.run_operation(ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
         return False
 
         

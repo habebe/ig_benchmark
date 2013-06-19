@@ -14,7 +14,7 @@ import socket
 
 class db:
     #default_name = platform.uname()[0].lower()
-    default_name = socket.gethostname().lower()
+    default_name = os.path.join("db",socket.gethostname().lower()+".db")
     schema_classes = [
         db_model.engine,
         db_model.os_type,
@@ -50,8 +50,14 @@ class db:
         cursor.execute(statement)
         return statement
 
-    def __init__(self,name = default_name):
-        self.name = name.lower()
+    def __init__(self):
+        if not os.path.exists("db"):
+            try:
+                os.mkdir("db")
+            except:
+                pass
+            pass
+        self.name = self.default_name
         if not self.name.endswith(".db"):
             self.name += ".db"
             pass

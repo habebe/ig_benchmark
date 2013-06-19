@@ -17,7 +17,7 @@ class operation(operations.operation):
         if operations.operation.operate(self):
             self.dbname = self.getSingleOption("name")
             self.location = self.getSingleOption("location")
-            self.db = db.db(self.dbname)
+            self.db = db.db()
             obj = db_report.db_report(self.db)
             return obj.report(self,self.location)
         return False

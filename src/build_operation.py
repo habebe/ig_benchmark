@@ -13,9 +13,11 @@ class operation(operations.operation):
     "Build a template"
     def __init__(self):
         operations.operation.__init__(self,"build",False)
-        self.add_argument("help",None,None,"show help message")
+        self.add_argument("help",None,None,"show help message.")
         self.add_argument("root","str",None,"Root path.")
-        self.add_argument("verbose","int",0,"verbose level")
+        self.add_argument("verbose","int",0,"verbose level.")
+        self.add_argument("ig_version","str",None,"InfiniteGraph version.")
+        self.add_argument("ig_home","str",None,"InfiniteGraph installation path.")
         self.builds = []
         pass
 
@@ -25,11 +27,27 @@ class operation(operations.operation):
         os.chdir(path)
         exe = "ant"
         arguments = [exe] + options
-        print "Run ",string.join(arguments)
-        p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr)
-        p.wait()
+        print string.join(arguments)
+        env = os.environ.copy()
+        if platform.system().lower().find("darwin") >= 0:
+            env["IG_HOME"] = os.path.join(self.ig_home,"mac86_64")
+            pass
+        print env["IG_HOME"]
+        status = False
+        try:
+            p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
+            p.wait()
+            status = (p.returncode == 0)
+        except:
+            status = False
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            message = "Error when building project.\n"
+            message += "{0}\n".format(string.join(arguments))
+            message += str(exc_obj)
+            self.error(message)
+            pass
         os.chdir(cwd)
-        return True
+        return status
 
 
     def __build__(self,path,project,template):
@@ -44,13 +62,29 @@ class operation(operations.operation):
         
     def operate(self):
         if operations.operation.operate(self):
-            self.root = self.getSingleOption("root")
+            self.root    = self.getSingleOption("root")
+            self.ig_version = self.getSingleOption("ig_version")
+            self.ig_home  = self.getSingleOption("ig_home")
+            
             if self.root == None:
                 self.error("Root path is not given.")
                 return False
+
+            if self.ig_version == None:
+                self.error("InfiniteGraph version is not given.")
+                return False
+
+            if self.ig_home == None:
+                self.error("InfiniteGraph installation path is not given.")
+                return False
+
+            
             self.root = os.path.abspath(self.root)
             template_path = os.path.join(self.root,"templates")
-            working_path  = os.path.join(self.root,"working")
+            working_path  = os.path.join(self.root,"working",self.ig_version)
+            if not os.path.exists(working_path):
+                os.mkdir(working_path)
+                pass
             listing = os.listdir(template_path)
             self.templates = []
             for i in listing:
@@ -61,10 +95,9 @@ class operation(operations.operation):
                     self.templates.append([path_item,project_item,working_item])
                     pass
                 pass
-            
-            
-            print working_path
+
             for i in self.templates:
-                self.__build__(i[2],i[1],i[0])
+                if not self.__build__(i[2],i[1],i[0]):
+                    return False
                 pass
             return True
