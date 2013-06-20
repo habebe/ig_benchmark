@@ -55,7 +55,7 @@ class operation(operations.operation):
         self.tag_object = self.db.create_unique_object(db_model.tag,"name",kwargs["tag"],
                                                        timestamp=self.db.now_string(True))
         
-        rootPath = os.path.dirname(db_model.suite.RootSuite.path)
+        rootPath = os.path.dirname(db_model.suite.RootSuite.get_path())
         self.run_operation(ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
         pass
 
@@ -174,6 +174,8 @@ class operation(operations.operation):
                                                     self.error("Unable to find configuration for InfiniteGraph version '{0}' using config {1}.".format(ig_version,iConfig))
                                                     return False
                                                 engine_object = self.db.create_unique_object(db_model.engine,"name",engine.version,description=engine.version)
+                                                config_object = self.db.create_unique_object(db_model.config,"name",configObject.getFullName(),description=configObject.getFullName())
+                                                
                                                 project_path = os.path.join(working_path,iTemplate)
                                                 bootPath = None
                                                 if len(configObject.hosts) > 0:
@@ -218,6 +220,7 @@ class operation(operations.operation):
                                                                                              platform_id=platform_object.id,
                                                                                              threads=iThreads,
                                                                                              index_id=index_object.id,
+                                                                                             config_id=config_object.id,
                                                                                              status=1
                                                                                              )
                                                     case_data_key = case_data_object.generateKey()

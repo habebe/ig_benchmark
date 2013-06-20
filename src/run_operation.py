@@ -158,6 +158,7 @@ class operation(operations.operation):
         self.suite_info = self.__read_suite_info__(self.suite_name,True)
         if self.suite_info:
             root_suite = self.__find_parent__(self.suite_info)
+            db_model.suite.RootSuite = root_suite
             if root_suite:
                 if self.__update_suite_info_database__(root_suite):
                     return self.__update_case_database__(self.suite_info)
@@ -169,9 +170,8 @@ class operation(operations.operation):
             self.tag = self.getSingleOption("tag")
             self.update_only = self.hasOption("update")
             (suite_object,size) = self.setup()
-            db_model.suite.RootSuite = suite_object
-            if suite_object and (not self.update_only):
-                rootPath = os.path.dirname(suite_object.path)
+            if db_model.suite.RootSuite and suite_object and (not self.update_only):
+                rootPath = os.path.dirname(db_model.suite.RootSuite.get_path())
                 #build = build_operation.operation()
                 #build.parse(["--root","{0}".format(rootPath)])
                 #build.operate()

@@ -1,15 +1,18 @@
 import xml.dom.minidom
 import sys
+import json
+import os
 
 class ConfigList:
     CONFIG = "Config"
     ENGINE = "Engine"
     ENGINELIST = "EngineList"
     
-    def __init__(self,dom_object):
+    def __init__(self,dom_object,name):
         self.dom_object = dom_object
         self.configs = []
         self.engines = []
+        self.name = name
         pass
 
     def __repr__(self):
@@ -36,7 +39,7 @@ class ConfigList:
             pass
         elements = self.dom_object.getElementsByTagName(self.CONFIG)
         for element in elements:
-            config = Config(element)
+            config = Config(element,self)
             if not config.build():
                 return False
             self.configs.append(config)
@@ -70,12 +73,16 @@ class Config:
     HOST = "Host"
     NAME = "name"
     
-    def __init__(self,dom_object):
+    def __init__(self,dom_object,parent):
         self.dom_object = dom_object
         self.lockserver = None
         self.hosts = []
         self.name = None
+        self.parent = parent
         pass
+
+    def getFullName(self):
+        return "{0}:{1}".format(self.parent.name,self.name)
 
     def __repr__(self):
         buf = "Config {0}: Lock-server {1}\n".format(self.name,self.lockserver)
@@ -164,7 +171,11 @@ def parse(fileName,handler):
         return None
     dom_object = document.getElementsByTagName("ConfigList")
     if len(dom_object):
-        configList = ConfigList(dom_object[0])
+        name = os.path.basename(fileName)
+        if name.endswith(".xml"):
+            name = name.replace(".xml","")
+            pass
+        configList = ConfigList(dom_object[0],name)
         configList.build()
         return configList
     return None

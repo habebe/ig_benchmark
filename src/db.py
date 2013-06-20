@@ -17,7 +17,6 @@ class db:
     default_name = os.path.join("db",socket.gethostname().lower()+".db")
     schema_classes = [
         db_model.engine,
-        db_model.os_type,
         db_model.case_type,
         db_model.platform,
         db_model.index_type,
@@ -25,7 +24,8 @@ class db:
         db_model.suite,
         db_model.case,
         db_model.case_data,
-        db_model.case_data_stat
+        db_model.case_data_stat,
+        db_model.config
         ]
 
     @classmethod

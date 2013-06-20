@@ -112,13 +112,13 @@ class engine(_name_description_):
         _name_description_.__init__(self)
         pass
 
-class os_type(_name_):
+class simtype(_name_description_):
     def __init__(self):
-        _name_.__init__(self)
+        _name_description_.__init__(self)
         pass
     pass
 
-class simtype(_name_description_):
+class config(_name_description_):
     def __init__(self):
         _name_description_.__init__(self)
         pass
@@ -178,6 +178,7 @@ class platform(_name_):
         data += (self.type)
         return data
     pass
+
 
 class index_type(_name_):
     def __init__(self):
@@ -402,10 +403,11 @@ class case_data_stat(db_object):
         value = self.key_data[10]
         return value
 
+   
     def object_data(self,name,default_value):
         self.generate_key_data()
-        if len(self.key_data) >= 12:
-            data = self.key_data[11]
+        if len(self.key_data) >= 13:
+            data = self.key_data[12]
             if data.has_key(name):
                 return data[name]
             pass
@@ -415,6 +417,17 @@ class case_data_stat(db_object):
         value = self.index_type_id()
         if self.mapper:
             return self.mapper.INDEX_MAP[value]
+        return str(value)
+
+    def config_id(self):
+        self.generate_key_data()
+        value = self.key_data[11]
+        return value
+
+    def config(self):
+        value = self.config_id()
+        if self.mapper and self.mapper.CONFIG_MAP.has_key(value):
+            return self.mapper.CONFIG_MAP[value]
         return str(value)
 
     def cache_init(self):
@@ -575,7 +588,7 @@ class case_data(db_object):
         ("platform_id",db_types.INTEGER),
         ("threads",db_types.INTEGER),
         ("index_id",db_types.INTEGER),
-        
+        ("config_id",db_types.INTEGER),
         
         ("time",db_types.REAL),
         ("rate",db_types.REAL),
@@ -607,6 +620,7 @@ class case_data(db_object):
         self.platform_id = None
         self.threads = None
         self.index_id = None
+        self.config_id = None
         
         self.time = None
         self.rate = None
@@ -623,7 +637,7 @@ class case_data(db_object):
             [self.case_id,self.engine_id,
              self.size,self.op_size,self.tx_size,
              self.page_size,self.cache_init,self.cache_max,
-             self.platform_id,self.threads,self.index_id,
+             self.platform_id,self.threads,self.index_id,self.config_id,
              self.data
              ]
             )
@@ -668,7 +682,7 @@ class case_data(db_object):
             self.case_id,self.engine_id,
             self.size,self.op_size,self.tx_size,
             self.page_size,self.cache_init,self.cache_max,
-            self.platform_id,self.threads,self.index_id,
+            self.platform_id,self.threads,self.index_id,self.config_id,
             self.time,self.rate,
             self.memory_init,self.memory_used,self.memory_committed,self.memory_max,
             self.data ) = self_data
@@ -689,7 +703,7 @@ class case_data(db_object):
             self.case_id,self.engine_id,
             self.size,self.op_size,self.tx_size,
             self.page_size,self.cache_init,self.cache_max,
-            self.platform_id,self.threads,self.index_id,
+            self.platform_id,self.threads,self.index_id,self.config_id,
             self.time,self.rate,
             self.memory_init,self.memory_used,self.memory_committed,self.memory_max,
             json.dumps(self.data))

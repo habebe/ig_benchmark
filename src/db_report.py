@@ -346,6 +346,7 @@ class db_report:
     ENGINE_MAP = {}
     PLATFORM_MAP = {}
     INDEX_MAP = {}
+    CONFIG_MAP = {}
     
     def __init__(self,db):
         self.db = db
@@ -585,6 +586,7 @@ class db_report:
         platform = self.db.fetch_using_generic(db_model.platform)
         tags = self.db.fetch_using_generic(db_model.tag)
         index_type = self.db.fetch_using_generic(db_model.index_type)
+        config_type = self.db.fetch_using_generic(db_model.config)
         for i in tags:
             self.TAG_MAP[i.id] = i.name
             pass
@@ -599,6 +601,9 @@ class db_report:
                 self.INDEX_MAP[i.id] = "graph"
             else:
                 self.INDEX_MAP[i.id] = i.name
+            pass
+        for i in config_type:
+            self.CONFIG_MAP[i.id] = i.name
             pass
         pass
 
