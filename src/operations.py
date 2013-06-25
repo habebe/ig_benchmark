@@ -142,6 +142,39 @@ class operation:
             print "Reusing previously generated dataset for {0} size {1} {2}".format(template,size,dataPath)
             pass
         return dataPath
+
+    @classmethod
+    def GenerateQuery(self,rootPath,template,size,graph_size,vertex,dist="uniform"):
+        dataPath = os.path.join(rootPath,"working","_dataset_")
+        if not os.path.exists(dataPath):
+            os.mkdir(dataPath)
+            pass
+        sourcePath = os.path.join(dataPath,"{0}.{1}.{2}".format(template,graph_size,True))
+        if not os.path.exists(sourcePath):
+            sourcePath = os.path.join(dataPath,"{0}.{1}.{2}".format(template,graph_size,False))
+            pass
+        if not os.path.exists(sourcePath):
+            self.error("Unable to find source path '{0}' when generating queries.".format(sourcePath))
+            return None
+        dataPath = os.path.join(dataPath,"query.{0}.{1}.{2}.{3}".format(template,vertex,graph_size,size))
+        if not os.path.exists(dataPath):
+            print "Generating query for {0} size {1} {2}".format(template,size,dataPath)
+            import generate_query_operation
+            dataset = generate_query_operation.operation()
+            dataset.parse([
+                "--root","{0}".format(rootPath),
+                "--template",template,
+                "--size",size,
+                "--source",sourcePath,
+                "--target",dataPath,
+                "--vertex",vertex,
+                "--dist",dist
+                ])
+            dataset.operate()
+        else:
+            print "Reusing previously generated query for {0} size {1} {2}".format(template,size,dataPath)
+            pass
+        return dataPath
     
     def getConfigList(self,rootPath,name):
         configParameter = name.split(":")
@@ -240,9 +273,9 @@ class operation:
             return (configList,configObject)
         return None
     
-    def removeProfileData(self,working_path):
-        events  = os.path.join(working_path,"benchmark.events")
-        profile = os.path.join(working_path,"benchmark.profile")
+    def removeProfileData(self,working_path,tag):
+        events  = os.path.join(working_path,"{0}.benchmark.events".format(tag))
+        profile = os.path.join(working_path,"{0}.benchmark.profile".format(tag))
         if os.path.exists(events):
             os.remove(events)
             pass
@@ -251,9 +284,9 @@ class operation:
             pass
         pass
 
-    def readProfileData(self,working_path):
-        eventsName  = os.path.join(working_path,"benchmark.events")
-        profileName = os.path.join(working_path,"benchmark.profile")
+    def readProfileData(self,working_path,tag):
+        eventsName  = os.path.join(working_path,"{0}.benchmark.events".format(tag))
+        profileName = os.path.join(working_path,"{0}.benchmark.profile".format(tag))
         events  = []
         profile = None
         if os.path.exists(eventsName):
@@ -311,10 +344,12 @@ class operation:
         return self.__module__.split(".")[1]
 
     def __init__(self,name,useDefaultArguments=True):
+        self.db = None
         if name == None:
             self.name = self.get_name()
         else:
             self.name = name
+            pass
         self.options = []
         self.arguments = []
         self.argumentDescription = []
@@ -484,7 +519,7 @@ class operation:
         if self.hasOption("help"):
             self.usage(None)
             return 0
-        self.name = self.getSingleOption("name")
+        self.db_name = self.getSingleOption("name")
         return 1
     pass
 
@@ -496,25 +531,9 @@ import build_operation
 import bootstrap_operation
 import dataset_operation
 import vertex_ingest_operation
+import query_operation
 import report_operation
-
-if 0:
-    import query
-    import show_tables
-    import run
-    import delete_tag
-    import report
-#import show_db_config
-    import graph_create
-    import graph_v_ingest
-    import graph_v_search
-    import make_graph500
-    import generate_elist
-    import graph_e_ingest
-    import graph_e_standard_ingest
-    import graph_e_ring_ingest
-    import graph_navigate_ring
-    import graph_navigate_dense
+import generate_query_operation
     
 def add_operation(operation):
     operations[operation.name] = operation
@@ -527,7 +546,9 @@ def populate():
         add_operation(build_operation.operation())
         add_operation(bootstrap_operation.operation())
         add_operation(dataset_operation.operation())
+        add_operation(generate_query_operation.operation())
         add_operation(vertex_ingest_operation.operation())
+        add_operation(query_operation.operation())
         add_operation(report_operation.operation())
         pass
     pass
