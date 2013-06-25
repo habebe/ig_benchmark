@@ -149,7 +149,11 @@ class operation(operations.operation):
         return (suite,size)
         
     def setup(self):
-        self.db = db.db()
+        if self.dbname == None:
+            self.db = db.db()
+        else:
+            self.db = db.db(self.dbname)
+            pass
         self.db.create_database()
         self.suite_name = "."
         if self.arguments and len(self.arguments):
