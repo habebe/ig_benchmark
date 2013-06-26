@@ -128,6 +128,14 @@ class db:
             return (str(inst),result)
         return (None,result)
 
+    def delete(self,type,id):
+        self.connection = sqlite3.connect(self.name)
+        cursor = self.connection.cursor()
+        delete_string  = "DELETE FROM %s where id=%d"%(type.get_name(),id)
+        cursor.execute(delete_string)
+        self.connection.commit()
+        pass
+
     def __delete_tag__(self,where):
         self.connection = sqlite3.connect(self.name)
         cursor = self.connection.cursor()

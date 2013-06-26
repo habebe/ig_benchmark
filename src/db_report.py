@@ -515,7 +515,12 @@ class db_report:
                 row_data = []
                 for i in table_view:
                     content = i[1]
-                    row_data.append(eval(content["content"]))
+                    try:
+                        row_data.append(eval(content["content"]))
+                    except:
+                        print "ERROR when evaluating expression {0}".format(content["content"])
+                        row_data.append(-1)
+                        pass
                     pass
                 data.append(row_data)
                 pass
