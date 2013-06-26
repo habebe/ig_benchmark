@@ -47,7 +47,7 @@ class benchmark_runner(threading.Thread):
     def setup(self):
         configPair = self.operation.getConfigObject(self.root_path,self.config)
         if configPair == None:
-            self.error("Unable to get configuration {0}".format(self.config))
+            self.operation.error("Unable to get configuration {0}".format(self.config))
             return False
         (self.configList,self.configObject) = configPair
         if not self.configObject:

@@ -176,9 +176,6 @@ class operation(operations.operation):
             (suite_object,size) = self.setup()
             if db_model.suite.RootSuite and suite_object and (not self.update_only):
                 rootPath = os.path.dirname(db_model.suite.RootSuite.get_path())
-                #build = build_operation.operation()
-                #build.parse(["--root","{0}".format(rootPath)])
-                #build.operate()
                 return suite_object.run(self.db,tag=self.tag,verbose=0)
             return False
         return True

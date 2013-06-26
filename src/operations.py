@@ -187,7 +187,6 @@ class operation:
             configName = configParameter[1]
             pass
         configFileName = os.path.join(self.GetConfigPath(rootPath),configFileName)
-        configList = config.parse(configFileName,self)
         try:
             configList = config.parse(configFileName,self)
         except:

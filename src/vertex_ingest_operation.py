@@ -57,7 +57,7 @@ class operation(operations.operation):
         
         rootPath = os.path.dirname(db_model.suite.RootSuite.get_path())
 
-        print template,configNames,page_size,useIndex,new_graph,size,threads,txsize,txlimit,cache,ig_version
+        #print template,configNames,page_size,useIndex,new_graph,size,threads,txsize,txlimit,cache,ig_version
         self.run_operation(ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
         pass
 
@@ -104,10 +104,11 @@ class operation(operations.operation):
         totalSize = len(runners) 
         for i in runners:
             i.message(counter,totalSize)
-            i.setup()
-            i.operate()
-            if i.return_code == 0:
-                self.updateDatabase(i)
+            if i.setup():
+                i.operate()
+                if i.return_code == 0:
+                    self.updateDatabase(i)
+                    pass
                 pass
             counter += 1
             pass
