@@ -57,6 +57,10 @@ class operation(operations.operation):
             suite = suites[0]
             pass
         suite.path = _suite_info_.get_path()
+        if db_model.suite.RootSuite:
+            suite.path = suite.path[len(db_model.suite.RootSuite.get_path()):]
+            suite.path = suite.path.replace(os.path.sep,".")
+            pass
         suite.problem_size = json.dumps(_suite_info_.problem_size)
         suite.default_problem_size = _suite_info_.default_problem_size
         suite.description = _suite_info_.description
@@ -113,6 +117,11 @@ class operation(operations.operation):
                         case_object = case_objects[0]
                         pass
                     case_object.path = _suite_info_.get_path()
+                    if db_model.suite.RootSuite:
+                        case_object.path = case_object.path[len(db_model.suite.RootSuite.get_path()):]
+                        case_object.path = case_object.path.replace(os.path.sep,".")
+                        case_object.path += ".{0}".format(_name)
+                        pass
                     case_object.description = _description
                     case_object.data = str(_data)
                     case_object.setCaseType(case_type_object)

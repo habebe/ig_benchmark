@@ -533,6 +533,7 @@ import vertex_ingest_operation
 import query_operation
 import report_operation
 import generate_query_operation
+import merge_operation
     
 def add_operation(operation):
     operations[operation.name] = operation
@@ -549,6 +550,7 @@ def populate():
         add_operation(vertex_ingest_operation.operation())
         add_operation(query_operation.operation())
         add_operation(report_operation.operation())
+        add_operation(merge_operation.operation())
         pass
     pass
 

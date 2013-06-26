@@ -170,12 +170,12 @@ class platform(_name_):
         parent_data = data[:(len(_name_._property_))]
         self_data = data[(len(_name_._property_)):]
         o = _name_.set_data(self,parent_data)
-        (self.type) = self_data
+        (self.type,) = self_data
         return self
 
     def get_data(self,includeId):
         data = _name_.get_data(self,includeId)
-        data += (self.type)
+        data += (self.type,)
         return data
     pass
 

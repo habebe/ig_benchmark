@@ -16,170 +16,187 @@ class operation(operations.operation):
     "Merge platform specific database into the master database."
     def __init__(self):
         operations.operation.__init__(self,"merge")
-        self.add_argument("source","str",None,"Source database")
-        self.add_argument("target","str","master","Target database")
+        self.add_argument("target","str",os.path.join("db","master.db"),"Target database")
         pass
 
-    def __read_suite_info__(self,suite_path_name,traverse_suites):
-        if os.path.exists(suite_path_name):
-            s = suite_info.suite_info()
-            if s.read(suite_path_name,self,traverse_suites):
-                return s
-        return None
-
-    def __find_parent__(self,suite):
-        if not suite.is_root:
-            parent_path = os.path.dirname(os.path.dirname(suite.file_name))
-            pSuite = self.__read_suite_info__(parent_path,False)
-            if not pSuite:
-                self.error("Unable to find root suite in path '%s'."%(parent_path))
-                return None
-            else:
-                suite.parent = pSuite
-                pSuite.suite_map[suite.get_name()] = suite
-                return self.__find_parent__(pSuite)
-        return suite
-                
-
-    def __update_suite_info_database__(self,_suite_info_,parent_suite_id=-1):
-        suites = self.db.fetch_using_generic(db_model.suite,
-                                             name=_suite_info_.get_name(),
-                                             parent=parent_suite_id
-                                             )
-        assert (len(suites) <= 1)
-        suite = None
-        if (len(suites) == 0):
-            suite = self.db.create_unique_object(db_model.suite,
-                                                 "name",_suite_info_.get_name(),
-                                                 parent=parent_suite_id
-                                                 )
-        else:
-            suite = suites[0]
+    def merge_platforms(self):
+        source_platform = self.sourceDB.fetch_using_generic(db_model.platform)
+        target_platform = self.targetDB.fetch_using_generic(db_model.platform)
+        self.source_platform_map = {}
+        self.target_platform_map = {}
+        for i in source_platform:
+            self.source_platform_map[i.name] = i
             pass
-        suite.path = _suite_info_.get_path()
-        suite.problem_size = json.dumps(_suite_info_.problem_size)
-        suite.default_problem_size = _suite_info_.default_problem_size
-        suite.description = _suite_info_.description
-        self.db.update(suite)
-        _suite_info_.id = suite.id
-        suite.transient_cases = _suite_info_.cases
-        sub_suite_info_list = _suite_info_.suite_map.values()
-        for sub_suite_info in sub_suite_info_list:
-            self.__update_suite_info_database__(sub_suite_info,suite.id)
+        for i in target_platform:
+            self.target_platform_map[i.name] = i
+            pass
+        for i in self.source_platform_map:
+            obj = self.source_platform_map[i]
+            if not self.target_platform_map.has_key(i):
+                print "Adding platform:",obj.name,"type:",obj.type
+                platform_object = self.targetDB.create_unique_object(db_model.platform,"name",obj.name,type=obj.type)
+                pass
+            else:
+                print "Existing platform:",obj.name,"type:",obj.type
+                pass
+            pass
         return True
 
-    def __get_case_data__(self,data,property_name,default_value=None):
-        if data.has_key(property_name):
-            return data[property_name]
-        return default_value
-
-    def __update_case_database__(self,_suite_info_,parent_suite=None):
-        suites = self.db.fetch_using_generic(db_model.suite,
-                                             id=_suite_info_.id
-                                             )
-        assert (len(suites) == 1)
-        suite = suites[0]
-        if parent_suite:
-            parent_suite.t_sub_suites.append(suite)
+    def merge_index_types(self):
+        source = self.sourceDB.fetch_using_generic(db_model.index_type)
+        target = self.targetDB.fetch_using_generic(db_model.index_type)
+        self.source_index_type_map = {}
+        self.target_index_type_map = {}
+        for i in source:
+            self.source_index_type_map[i.name] = i
             pass
-        size = 0
-        for case_info in _suite_info_.cases:
-            _name = self.__get_case_data__(case_info,"name",None)
-            if _name == None:
-                _name = self.problem_size
+        for i in target:
+            self.target_index_type_map[i.name] = i
+            pass
+        for i in self.source_index_type_map:
+            obj = self.source_index_type_map[i]
+            if not self.target_index_type_map.has_key(i):
+                print "Adding index type:",obj.name
+                index_object = self.targetDB.create_unique_object(db_model.index_type,"name",obj.name)
                 pass
-            
-                
-            _description = self.__get_case_data__(case_info,"description",None)
-            _type = self.__get_case_data__(case_info,"type",None)
-            _data = self.__get_case_data__(case_info,"data",None)
-            _table_view = self.__get_case_data__(case_info,"table_view",None)
-            _plot_view = self.__get_case_data__(case_info,"plot_view",None)
-            _operation_object_ = operations._operation_(_type)
-            if _operation_object_:
-                if _operation_object_.is_runnable():
-                    case_type_object = _operation_object_.operation_update_database(self.db)
-                    case_objects =  self.db.fetch_using_generic(db_model.case,
-                                                                name=_name,
-                                                                parent=_suite_info_.id,
-                                                                )
-                    assert (len(case_objects) <= 1)
-                    case_object = None
-                    if len(case_objects) == 0:
-                        case_object = self.db.create_object(db_model.case,
-                                                            name=_name,
-                                                            parent=suite.id)
-                    else:
-                        case_object = case_objects[0]
-                        pass
-                    case_object.path = _suite_info_.get_path()
-                    case_object.description = _description
-                    case_object.data = str(_data)
-                    case_object.setCaseType(case_type_object)
-                    case_object.t_operation = _operation_object_
-                    if _table_view:
-                        case_object.table_view = json.dumps(_table_view)
-                    else:
-                        case_object.table_view = None
-                    if _plot_view:
-                        case_object.plot_view = json.dumps(_plot_view)
-                    else:
-                        case_object.plot_view = None
-                        pass
-                    self.db.update(case_object)
-                    suite.t_cases.append(case_object)
-                    size += 1
-                    pass
-                else:
-                    self.warn("Operation '%s' is not runnable.\nCase:'%s' in suite '%s'.\nIgnoring it.\n"%(
-                        _type,_name,suite.name
-                        ))
             else:
-                self.warn("Unable to find operation '%s' .\nCase:'%s' in suite '%s'.\nIgnoring it.\n"%(
-                    _type,_name,suite.name
-                    ))
+                print "Existing index type:",obj.name
                 pass
-                    
-        sub_suite_info_list = _suite_info_.suite_map.values()
-      
-        for sub_suite_info in sub_suite_info_list:
-            (s,_size) = self.__update_case_database__(sub_suite_info,suite)
-            size += _size
             pass
-        return (suite,size)
-        
-    def setup(self):
-        if self.dbname == None:
-            self.db = db.db()
-        else:
-            self.db = db.db(self.dbname)
+        return True
+
+    def merge_description_objects(self,obj_type,name):
+        source = self.sourceDB.fetch_using_generic(obj_type)
+        target = self.targetDB.fetch_using_generic(obj_type)
+        source_map = {}
+        target_map = {}
+        for i in source:
+            source_map[i.name] = i
             pass
-        self.db.create_database()
-        self.suite_name = "."
-        if self.arguments and len(self.arguments):
-            self.suite_name = self.arguments[0]
-        self.suite_name = os.path.abspath(self.suite_name)
-        self.suite_info = self.__read_suite_info__(self.suite_name,True)
-        if self.suite_info:
-            root_suite = self.__find_parent__(self.suite_info)
-            db_model.suite.RootSuite = root_suite
-            if root_suite:
-                if self.__update_suite_info_database__(root_suite):
-                    return self.__update_case_database__(self.suite_info)
-        return (None,None)
+        for i in target:
+            target_map[i.name] = i
+            pass
+        for i in source_map:
+            obj = source_map[i]
+            if not target_map.has_key(i):
+                object = self.targetDB.create_unique_object(obj_type,"name",obj.name,description=obj.description)
+                print "Adding ",name,obj.name,obj.description," ID : ",object.id
+                target_map[object.name] = object
+                pass
+            else:
+                print "Existing ",name,obj.name,obj.description
+                pass
+            pass
+        return (source_map,target_map)
+
+    def merge_engine(self):
+        (self.source_engine_map,self.target_engine_map) = self.merge_description_objects(db_model.engine,"engine")
+        return True
+
+    def merge_config(self):
+        (self.source_config_map,self.target_config_map) = self.merge_description_objects(db_model.config,"config")
+        return True
+
+    def merge_case_type(self):
+        (self.source_case_type_map,self.target_case_type_map) = self.merge_description_objects(db_model.case_type,"case_type")
+        return True
+
+    def merge_suite(self):
+        source = self.sourceDB.fetch_using_generic(db_model.suite)
+        target = self.targetDB.fetch_using_generic(db_model.suite)
+        self.source_suite_map = {}
+        self.target_suite_map = {}
+        for i in source:
+            self.source_suite_map[i.path] = i
+            pass
+        for i in target:
+            self.target_suite_map[i.path] = i
+            pass
+        addedSuites = []
+        addedSuiteMap = {}
+        for i in self.source_suite_map:
+            obj = self.source_suite_map[i]
+            if not self.target_suite_map.has_key(i):
+              
+                #print self.target_suite_map
+                #_suite_id = self.target_suite_map[suite_object[0].name].id
+                suite_object = self.targetDB.create_unique_object(db_model.suite,
+                                                                  "path",obj.path,
+                                                                  name=obj.name,
+                                                                  description=obj.description,
+                                                                  parent=obj.parent
+                                                                  )
+                self.target_suite_map[suite_object.path] = suite_object
+                print "Adding suite:",obj.path,obj.name
+                if obj.parent != -1:
+                    source_object = self.sourceDB.fetch_using(db_model.suite,"id",obj.parent)
+                    assert len(source_object) == 1
+                    addedSuiteMap[obj.parent] = source_object[0].path
+                    addedSuites.append(suite_object)
+                pass
+            else:
+                print "Existing suite:",obj.name
+                pass
+            pass
+        for i in addedSuites:
+            target_suite = self.target_suite_map[addedSuiteMap[i.parent]]
+            i.parent = target_suite.id 
+            pass
+        return True
+
+    def merge_case(self):
+        source = self.sourceDB.fetch_using_generic(db_model.case)
+        target = self.targetDB.fetch_using_generic(db_model.case)
+        self.source_case_map = {}
+        self.target_case_map = {}
+        for i in source:
+            self.source_case_map[i.path] = i
+            pass
+        for i in target:
+            self.target_case_map[i.path] = i
+            pass
+        for i in self.source_case_map:
+            obj = self.source_case_map[i]
+            if not self.target_case_map.has_key(i):
+                print "Adding case:",obj.path,obj.case_type_id,obj.parent
+                source_case_data_type_object = self.sourceDB.fetch_using(db_model.case_type,"id",obj.case_type_id)
+                assert (source_case_data_type_object != None) and len(source_case_data_type_object)
+                _case_type_id = self.target_case_type_map[source_case_data_type_object[0].name].id
+
+                suite_object = self.sourceDB.fetch_using(db_model.suite,"id",obj.parent)
+                assert (suite_object != None) and len(suite_object)
+                _suite_id = self.target_suite_map[suite_object[0].path].id
+                suite_object = self.targetDB.create_unique_object(db_model.case,
+                                                                  "path",obj.path,
+                                                                  name=obj.name,
+                                                                  description=obj.description,
+                                                                  path=obj.path,
+                                                                  parent=_suite_id,
+                                                                  case_type_id=_case_type_id,
+                                                                  table_view=obj.table_view,
+                                                                  plot_view=obj.plot_view,
+                                                                  data=obj.data,
+                                                                  )
+                pass
+            else:
+                print "Existing case:",obj.name
+                pass
+            pass
+        return True
             
     def operate(self):
         if operations.operation.operate(self):
-            self.dbname = self.getSingleOption("name")
-            self.tag = self.getSingleOption("tag")
-            self.update_only = self.hasOption("update")
-            (suite_object,size) = self.setup()
-            if db_model.suite.RootSuite and suite_object and (not self.update_only):
-                rootPath = os.path.dirname(db_model.suite.RootSuite.get_path())
-                #build = build_operation.operation()
-                #build.parse(["--root","{0}".format(rootPath)])
-                #build.operate()
-                return suite_object.run(self.db,tag=self.tag,verbose=0)
-            return False
+            target = self.getSingleOption("target")
+            source = self.getSingleOption("name")
+            self.targetDB = db.db(target)
+            self.sourceDB = db.db(source)
+            if not os.path.exists(self.sourceDB.name):
+                self.error("Source database does not exist '{0'".format(self.sourceDB.name))
+                return False
+            self.targetDB.create_database()
+            self.sourceDB.create_database()
+            status = self.merge_platforms() and self.merge_index_types() and self.merge_engine() and self.merge_config() and self.merge_case_type()
+            status = status and self.merge_suite() and self.merge_case()
+            return status
         return True
 
