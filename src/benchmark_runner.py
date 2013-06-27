@@ -127,11 +127,12 @@ class benchmark_runner(threading.Thread):
             pass
 
         #print string.join(arguments)
-        print "\t\tRunning benchmark (threads:{0} tx_size:{1} tx_type:{2} tx_limit:{3})".format(self.threads,
-                                                                                                self.tx_size,
-                                                                                                self.tx_type,
-                                                                                                self.tx_limit
-                                                                                                ),self.operation.name,
+        print "\t\tRunning benchmark (version:{0} threads:{1} tx_size:{2} tx_type:{3} tx_limit:{4})".format(self.engine.version,
+                                                                                                            self.threads,
+                                                                                                            self.tx_size,
+                                                                                                            self.tx_type,
+                                                                                                            self.tx_limit
+                                                                                                            ),self.operation.name,
         sys.stdout.flush()
         p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
         p.wait()
