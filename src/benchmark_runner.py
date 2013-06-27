@@ -40,8 +40,7 @@ class benchmark_runner(threading.Thread):
         pass
 
     def message(self,counter,size):
-        percentage = "%3.2f"%(counter*100/size)
-        print "[{0}%] Run working_path:{1}".format(percentage,self.working_path)
+        print "\t[{0}/{1}] Run {2}".format(counter,size,self.operation.name)
         pass
 
     def setup(self):
@@ -61,12 +60,12 @@ class benchmark_runner(threading.Thread):
         if len(self.configObject.hosts) > 0:
             if len(self.configObject.hosts[0].disks) > 0:
                 p = os.path.join(self.configObject.hosts[0].disks[0].location,self.version,self.template)
-                print self.operation.output_string("Bootpath:{0}".format(p),True,True)
+                #print self.operation.output_string("Bootpath:{0}".format(p),True,True)
                 bootPath = p
                 pass
             pass
         if self.new_graph:
-            print "Create new graph"
+            #print "Create new graph"
             bootstrap = bootstrap_operation.operation()
             arguments = [
                 "--root","{0}".format(self.root_path),
@@ -87,7 +86,7 @@ class benchmark_runner(threading.Thread):
         self.profile_tag = str(int(round(time.time() * 1000)))
         project_path = os.path.join(self.working_path,self.template)
         self.propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","{0}.properties".format(self.profile_tag)))
-        print self.operation.output_string("Generating ingest propertyFile {0}".format(self.propertyFile.fileName),True,False)
+        #print self.operation.output_string("Generating ingest propertyFile {0}".format(self.propertyFile.fileName),True,False)
         self.propertyFile.setLockServer(self.configObject.lockserver)
         self.propertyFile.setBootPath(bootPath)
         self.propertyFile.generate()
@@ -126,9 +125,17 @@ class benchmark_runner(threading.Thread):
             arguments.append("-ops")
             arguments.append("Q")
             pass
-        print string.join(arguments)
+
+        #print string.join(arguments)
+        print "\t\tRunning test",
+        sys.stdout.flush()
         p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
         p.wait()
+        if p.returncode == 0:
+            print "[complete]"
+        else:
+            print "[failed]"
+            pass
         self.return_code = p.returncode
         if p.returncode == 0:
             (self.events,self.profile) = self.operation.readProfileData(self.working_path,self.profile_tag)

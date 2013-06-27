@@ -115,7 +115,8 @@ class operation:
         dataPath = os.path.join(dataPath,"{0}.{1}.{2}".format(template,size,vertexOnly))
         if not os.path.exists(dataPath):
             os.mkdir(dataPath)
-            print "Generating dataset for {0} size {1} {2}".format(template,size,dataPath)
+            print "\t\tGenerating dataset template:{0} size:{1} path:{2}".format(template,size,dataPath),
+            sys.stdout.flush()
             import dataset_operation
             dataset = dataset_operation.operation()
             sourcePath = os.path.join(rootPath,"data_source")
@@ -138,8 +139,9 @@ class operation:
                     ])
                 pass
             dataset.operate()
+            print "[complete]"
         else:
-            print "Reusing previously generated dataset for {0} size {1} {2}".format(template,size,dataPath)
+            print "\t\tReusing previously generated dataset template:{0} size:{1} path:{2}".format(template,size,dataPath)
             pass
         return dataPath
 
@@ -158,7 +160,8 @@ class operation:
             return None
         dataPath = os.path.join(dataPath,"query.{0}.{1}.{2}.{3}".format(template,vertex,graph_size,size))
         if not os.path.exists(dataPath):
-            print "Generating query for {0} size {1} {2}".format(template,size,dataPath)
+            print "\t\tGenerating template template:{0} size:{1} path:{2}".format(template,size,dataPath),
+            sys.stdout.flush()
             import generate_query_operation
             dataset = generate_query_operation.operation()
             dataset.parse([
@@ -171,8 +174,9 @@ class operation:
                 "--dist",dist
                 ])
             dataset.operate()
+            print "[complete]"
         else:
-            print "Reusing previously generated query for {0} size {1} {2}".format(template,size,dataPath)
+            print "\t\tReusing previously generated query template:{0} size:{1} path:{2}".format(template,size,dataPath)
             pass
         return dataPath
     

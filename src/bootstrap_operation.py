@@ -11,6 +11,7 @@ import string
 import config
 import build_operation
 import ig_property
+import tempfile
 
 class operation(operations.operation):
     "Bootstrap the Graph database given a template and a configuration file."
@@ -24,6 +25,7 @@ class operation(operations.operation):
         self.add_argument("no_index",None,None,"Do not create index.")
         self.add_argument("containers","int","0","Create containers with this size.")
         self.add_argument("ig_version","str",None,"InfiniteGraph version.")
+        self.add_argument("verbose","int","0","Verbose level.")
         pass
 
 
@@ -31,12 +33,35 @@ class operation(operations.operation):
         cwd = os.getcwd()
         os.chdir(working_path)
         env = self.getEnv(engine.version,engine.home)
-        arguments = ["java","-jar",os.path.join(working_path,project,"build","bootstrap.jar"),"-overwrite","-property",propertyFile.fileName]
+        arguments = ["java","-jar",os.path.join(working_path,project,"build","bootstrap.jar"),
+                     "-overwrite",
+                     "-property",propertyFile.fileName,
+                     "-verbose",str(self.verbose)
+                     ]
         if noIndex:
             arguments.append("-no_index")
-        print self.output_string("\t"+string.join(arguments),True,False)
-        p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
+            pass
+        stdout = sys.stdout
+        stderr = sys.stderr
+        if self.verbose == 0:
+            stdout = tempfile.NamedTemporaryFile()
+            stderr = stdout
+            pass
+        if self.verbose > 0:
+            print self.output_string("\t"+string.join(arguments),True,False)
+            pass
+        p = subprocess.Popen(arguments,stdout=stdout,stderr=stderr,env=env)
         p.wait()
+        if (self.verbose == 0) and (p.returncode != 0):
+            stderr.flush()
+            f = file(stderr.name,"r")
+            line = f.readline()
+            while len(line):
+                print >> sys.stderr,line,
+                line = f.readline()
+                pass
+            pass
+        pass
         os.chdir(cwd)
         return (p.returncode == 0)
 
@@ -47,14 +72,17 @@ class operation(operations.operation):
                      "AddStorageLocation",
                      "-name","location.{0}".format(counter),
                      "-storageLocation","{0}::{1}".format(storage[1],storage[2]),
-                     "noTitle",
+                     "-noTitle",
+                     "-quiet",
                      "-bootfile",bootFile]
         p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
         p.wait()
         return (p.returncode == 0)
 
     def createContainers(self,engine,storage,count,bootFile):
-        print self.output_string("Container: {0}::{1}".format(storage[1],storage[2]),True,False)
+        if self.verbose > 0:
+            print self.output_string("Container: {0}::{1}".format(storage[1],storage[2]),True,False)
+            pass
         env = self.getEnv(engine.version,engine.home)
         for i in ["Vertex","Edge","Connector"]:
             arguments = [os.path.join(engine.home,"bin","objy"),
@@ -74,13 +102,15 @@ class operation(operations.operation):
         return True
 
     def listStorage(self,engine,bootFile):
-        env = self.getEnv(engine.version,engine.home)
-        arguments = [os.path.join(engine.home,"bin","objy"),
-                     "ListStorage",
-                     "noTitle",
-                     "-bootfile",bootFile]
-        p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
-        p.wait()
+        if self.verbose > 0:
+            env = self.getEnv(engine.version,engine.home)
+            arguments = [os.path.join(engine.home,"bin","objy"),
+                         "ListStorage",
+                         "noTitle",
+                         "-bootfile",bootFile]
+            p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
+            p.wait()
+            return True
         return True
 
 
@@ -111,6 +141,9 @@ class operation(operations.operation):
             configParameter = self.getSingleOption("config")
             ig_version = self.getSingleOption("ig_version")
             project = self.getSingleOption("project")
+            containers = self.getSingleOption("containers")
+            self.verbose = self.getSingleOption("verbose")
+
             if project == None:
                 self.error("Project is not given.")
                 return False
@@ -138,7 +171,9 @@ class operation(operations.operation):
                 return False
 
             if not os.path.exists(project_path):
-                self.warn("Project path '{0}' does not exist. Trying to build project.".format(project))
+                if self.verbose > 0:
+                    self.warn("Project path '{0}' does not exist. Trying to build project.".format(project))
+                    pass
                 build = build_operation.operation()
                 build.parse(["--root","{0}".format(rootPath)])
                 build.parse(["--ig_home","{0}".format(engine.home)])
@@ -148,9 +183,16 @@ class operation(operations.operation):
                     self.error("Project path '{0}' does not exist after an attempted build.".format(project))
                     return False
                 pass
+            if self.verbose == 0:
+                print "\t\tBootstrap database ",
+                print "template:{0} version:{1}".format(project,ig_version),
+                print "pre-allocate container size:{0}".format(containers),
+                sys.stdout.flush()
+                pass
+            if self.verbose > 0:
+                print self.output_string("Bootstrap using\n{0}".format(configObject),True,True)
+                pass
             
-            print self.output_string("Bootstrap using\n{0}".format(configObject),True,True)
-            print self.output_string("Making path",True,True)
             counter = 0
             bootPath = None
             storage = []
@@ -158,17 +200,23 @@ class operation(operations.operation):
                 for disk in host.disks:
                     p = self.mkpath(host.address,disk.location,ig_version,project)
                     if bootPath == None:
-                        print self.output_string("Bootpath:{0}".format(p),True,True)
+                        if self.verbose > 0:
+                            print self.output_string("Bootpath:{0}".format(p),True,True)
+                            pass
                         bootPath = p
                         pass
                     storage.append(("location.{0}".format(counter),host.address,p))
-                    print self.output_string("Path:{0}".format(p),True,True)
+                    if self.verbose > 0:
+                        print self.output_string("Path:{0}".format(p),True,True)
+                        pass
                     counter += 1
                     pass
                 pass
             
             propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","bootstrap.properties"))
-            print self.output_string("Generating bootstrap propertyFile {0}".format(propertyFile.fileName),True,False)
+            if self.verbose > 0:
+                print self.output_string("Generating bootstrap propertyFile {0}".format(propertyFile.fileName),True,False)
+                pass
             propertyFile.setLockServer(configObject.lockserver)
             propertyFile.setBootPath(bootPath)
             page_size = self.getSingleOption("page_size")
@@ -176,12 +224,16 @@ class operation(operations.operation):
                 propertyFile.setPageSize(pow(2,int(page_size)))
                 pass
             propertyFile.generate()
-            
-            print self.output_string("Creating graph",True,True)
+
+            if self.verbose > 0:
+                print self.output_string("Creating graph",True,True)
+                pass
             self.createGraph(engine,working_path,project,propertyFile,self.hasOption("no_index"))
 
             locationFile = ig_property.LocationConfigFile(os.path.join(project_path,"properties","location.config"))
-            print self.output_string("Generating location preference {0}".format(locationFile.fileName),True,False)
+            if self.verbose > 0:
+                print self.output_string("Generating location preference {0}".format(locationFile.fileName),True,False)
+                pass
             locationFile.generate(storage)
             
             counter = 0
@@ -193,13 +245,17 @@ class operation(operations.operation):
                 counter += 1
                 pass
             self.listStorage(engine,bootFile)
-            containers = self.getSingleOption("containers")
+            
             if containers > 0:
                 for i in storage:
                     if not self.createContainers(engine,i,containers,bootFile):
                         self.error("Unable to create containers.")
                         return False
                     pass
+                pass
+            if self.verbose == 0:
+                print "[complete]"
+                sys.stdout.flush()
                 pass
             return True
         self.error("Unknown error during bootstrap.")
