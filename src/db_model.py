@@ -207,7 +207,7 @@ class suite(_name_description_):
         return "suite"
 
     def run(self,db,**kwargs):
-        print "suite: ",self.name
+        print "suite:{0}".format(self.name)
         for i in self.t_cases:
             i.run(db,self,**kwargs)
         for i in self.t_sub_suites:
@@ -260,8 +260,9 @@ class case(suite):
         return "case"
     
     def run(self,db,parent,**kwargs):
-        print "\tcase: ",self.name," operation:",self.t_operation.name
+        print "\tcase:{0} operation:{1} ".format(self.name,self.t_operation.name)
         self.t_operation.run(db,parent,self,eval(self.data),**kwargs)
+        print
         pass            
 
     def setCaseType(self,case_type_object):
