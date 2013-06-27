@@ -16,7 +16,8 @@ class operation(operations.operation):
     "Merge platform specific database into the master database."
     def __init__(self):
         operations.operation.__init__(self,"merge")
-        self.add_argument("target","str",os.path.join("db","master.db"),"Target database")
+        self.add_argument("root","str",".","root path")
+        self.add_argument("master","str",None,"Master database")
         pass
 
     def merge_platforms(self):
@@ -33,12 +34,12 @@ class operation(operations.operation):
         for i in self.source_platform_map:
             obj = self.source_platform_map[i]
             if not self.target_platform_map.has_key(i):
-                print "Adding platform:",obj.name,"type:",obj.type
+                #print "Adding platform:",obj.name,"type:",obj.type
                 platform_object = self.targetDB.create_unique_object(db_model.platform,"name",obj.name,type=obj.type)
                 self.target_platform_map[platform_object.name] = platform_object
                 pass
             else:
-                print "Existing platform:",obj.name,"type:",obj.type
+                #print "Existing platform:",obj.name,"type:",obj.type
                 pass
             pass
         self.platform_id_map = {}
@@ -63,12 +64,12 @@ class operation(operations.operation):
         for i in self.source_tag_map:
             obj = self.source_tag_map[i]
             if not self.target_tag_map.has_key(i):
-                print "Adding tag:",obj.name,"type:",obj.timestamp
+                #print "Adding tag:",obj.name,"type:",obj.timestamp
                 tag_object = self.targetDB.create_unique_object(db_model.tag,"name",obj.name,timestamp=obj.timestamp)
                 self.target_tag_map[tag_object.name] = tag_object
                 pass
             else:
-                print "Existing tag:",obj.name,"type:",obj.timestamp
+                #print "Existing tag:",obj.name,"type:",obj.timestamp
                 pass
             pass
         self.tag_id_map = {}
@@ -93,12 +94,12 @@ class operation(operations.operation):
         for i in self.source_index_type_map:
             obj = self.source_index_type_map[i]
             if not self.target_index_type_map.has_key(i):
-                print "Adding index type:",obj.name
+                #print "Adding index type:",obj.name
                 index_object = self.targetDB.create_unique_object(db_model.index_type,"name",obj.name)
                 self.target_index_type_map[obj.name] = index_object
                 pass
             else:
-                print "Existing index type:",obj.name
+                #print "Existing index type:",obj.name
                 pass
             pass
         self.index_type_id_map = {}
@@ -124,11 +125,11 @@ class operation(operations.operation):
             obj = source_map[i]
             if not target_map.has_key(i):
                 object = self.targetDB.create_unique_object(obj_type,"name",obj.name,description=obj.description)
-                print "Adding ",name,obj.name,obj.description," ID : ",object.id
+                #print "Adding ",name,obj.name,obj.description," ID : ",object.id
                 target_map[object.name] = object
                 pass
             else:
-                print "Existing ",name,obj.name,obj.description
+                #print "Existing ",name,obj.name,obj.description
                 pass
             pass
         source_target_id_map = {}
@@ -177,7 +178,7 @@ class operation(operations.operation):
                                                                   parent=obj.parent
                                                                   )
                 self.target_suite_map[suite_object.path] = suite_object
-                print "Adding suite:",obj.path,obj.name
+                #print "Adding suite:",obj.path,obj.name
                 if obj.parent != -1:
                     source_object = self.sourceDB.fetch_using(db_model.suite,"id",obj.parent)
                     assert len(source_object) == 1
@@ -185,7 +186,7 @@ class operation(operations.operation):
                     addedSuites.append(suite_object)
                 pass
             else:
-                print "Existing suite:",obj.name
+                #print "Existing suite:",obj.name
                 pass
             pass
         for i in addedSuites:
@@ -209,7 +210,7 @@ class operation(operations.operation):
         for i in self.source_case_map:
             obj = self.source_case_map[i]
             if not self.target_case_map.has_key(i):
-                print "Adding case:",obj.path,obj.case_type_id,obj.parent
+                #print "Adding case:",obj.path,obj.case_type_id,obj.parent
                 source_case_data_type_object = self.sourceDB.fetch_using(db_model.case_type,"id",obj.case_type_id)
                 assert (source_case_data_type_object != None) and len(source_case_data_type_object)
                 _case_type_id = self.target_case_type_map[source_case_data_type_object[0].name].id
@@ -231,7 +232,7 @@ class operation(operations.operation):
                 self.target_case_map[obj.path] = suite_object
                 pass
             else:
-                print "Existing case:",obj.name
+                #print "Existing case:",obj.name
                 pass
             pass
         self.case_id_map = {}
@@ -253,7 +254,7 @@ class operation(operations.operation):
         for i in target:
             platform_id = i.platform_id()
             if platform_ids.has_key(platform_id):
-                print "Deleting Case Stat ID:",i.id,"from platform",platform_id,"name:",platform_ids[platform_id]
+                #print "Deleting Case Stat ID:",i.id,"from platform",platform_id,"name:",platform_ids[platform_id]
                 self.targetDB.delete(db_model.case_data_stat,i.id)
                 pass
             pass
@@ -269,7 +270,7 @@ class operation(operations.operation):
             data[8]  = self.platform_id_map[platform]
             data[10] = self.index_type_id_map[index]
             data[11] = self.config_id_map[config]
-            print "Adding Case Stat ID:",i.id
+            #print "Adding Case Stat ID:",i.id
             case_data_stat_object = self.targetDB.create_unique_object(db_model.case_data_stat,
                                                                        "key",json.dumps(data),
                                                                        case_id=data[0]
@@ -318,7 +319,7 @@ class operation(operations.operation):
         for i in target:
             platform_id = i.platform_id
             if platform_ids.has_key(platform_id):
-                print "[{0}] Deleting Case ID:".format(counter),i.id,"from platform",platform_id,"name:",platform_ids[platform_id]
+                #print "[{0}] Deleting Case ID:".format(counter),i.id,"from platform",platform_id,"name:",platform_ids[platform_id]
                 self.targetDB.delete(db_model.case_data,i.id)
                 counter += 1
                 pass
@@ -349,22 +350,40 @@ class operation(operations.operation):
                                                            )
             pass
         return True
-            
+
+    def collect_databases(self,path):
+        path = os.path.abspath(path)
+        db_files = []
+        listing = os.listdir(path)
+        for i in listing:
+            if i.endswith(".db"):
+                if i != "master.db":
+                    db_files.append(os.path.join(path,i))
+                    pass
+                pass
+            pass
+        return db_files
+    
     def operate(self):
         if operations.operation.operate(self):
+            root = self.getSingleOption("root")
             target = self.getSingleOption("target")
-            source = self.getSingleOption("name")
-            self.targetDB = db.db(target)
-            self.sourceDB = db.db(source)
-            if not os.path.exists(self.sourceDB.name):
-                self.error("Source database does not exist '{0'".format(self.sourceDB.name))
-                return False
+            path = os.path.abspath(os.path.join(root,"db"))
+            sources =  self.collect_databases(path)
+            if target == None:
+                self.targetDB = db.db(os.path.join(path,"master.db"))
+            else:
+                self.targetDB = db.db(target)
+                pass
             self.targetDB.create_database()
-            self.sourceDB.create_database()
-            status = self.merge_tag() and self.merge_platforms() and self.merge_index_types() and self.merge_engine() and self.merge_config() and self.merge_case_type()
-            status = status and self.merge_suite() and self.merge_case()
-            status = status and self.merge_case_data()
-            status = status and self.merge_case_data_stat()
+            for source in sources:
+                self.sourceDB = db.db(source)
+                self.sourceDB.create_database()
+                status = self.merge_tag() and self.merge_platforms() and self.merge_index_types() and self.merge_engine() and self.merge_config() and self.merge_case_type()
+                status = status and self.merge_suite() and self.merge_case()
+                status = status and self.merge_case_data()
+                status = status and self.merge_case_data_stat()
+                pass
             return status
         return True
 

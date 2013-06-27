@@ -176,7 +176,7 @@ class operation(operations.operation):
                 if self.__update_suite_info_database__(root_suite):
                     return self.__update_case_database__(self.suite_info)
         return (None,None)
-            
+
     def operate(self):
         if operations.operation.operate(self):
             self.dbname = self.getSingleOption("name")

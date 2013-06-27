@@ -43,7 +43,8 @@ class operation(operations.operation):
 
     def addStorage(self,engine,storage,counter,bootFile):
         env = self.getEnv(engine.version,engine.home)
-        arguments = ["objy","AddStorageLocation",
+        arguments = [os.path.join(engine.home,"bin","objy"),
+                     "AddStorageLocation",
                      "-name","location.{0}".format(counter),
                      "-storageLocation","{0}::{1}".format(storage[1],storage[2]),
                      "noTitle",
@@ -56,9 +57,10 @@ class operation(operations.operation):
         print self.output_string("Container: {0}::{1}".format(storage[1],storage[2]),True,False)
         env = self.getEnv(engine.version,engine.home)
         for i in ["Vertex","Edge","Connector"]:
-            arguments = ["objy","CreateContainers",
+            arguments = [os.path.join(engine.home,"bin","objy"),
+                         "CreateContainers",
                          "-count",str(count),
-                         "-modelName","InfiniteGraph",
+                         "-modelName",engine.model,
                          "-group",i,
                          "-storageLocation","{0}::{1}".format(storage[1],storage[2]),
                          "-noTitle",
@@ -73,7 +75,8 @@ class operation(operations.operation):
 
     def listStorage(self,engine,bootFile):
         env = self.getEnv(engine.version,engine.home)
-        arguments = ["objy","ListStorage",
+        arguments = [os.path.join(engine.home,"bin","objy"),
+                     "ListStorage",
                      "noTitle",
                      "-bootfile",bootFile]
         p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)

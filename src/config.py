@@ -50,20 +50,26 @@ class ConfigList:
 class Engine:
     VERSION = "version"
     HOME    = "home"
+    MODEL   = "model"
     
     def __init__(self,dom_object):
         self.dom_object = dom_object
         self.version = None
         self.home = None
+        self.model = None
         pass
 
     def __repr__(self):
-        buf = "Engine {0}: root:{1}\n".format(self.version,self.home)
+        buf = "Engine {0}: root:{1} model:{2}\n".format(self.version,self.home,self.model)
         return buf
 
     def build(self):
         self.version = self.dom_object.getAttribute(self.VERSION)
         self.home    = self.dom_object.getAttribute(self.HOME)
+        self.model   = self.dom_object.getAttribute(self.MODEL)
+        if self.model == None:
+            self.model = "IG"
+            pass
         return True
     pass
 
