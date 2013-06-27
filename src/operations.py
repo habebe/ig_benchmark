@@ -230,11 +230,13 @@ class operation:
         return env
     
     def setupWorkingPath(self,rootPath,version):
-        working_path = os.path.join(rootPath,"working",version)
-        if not os.path.exists(working_path):
-            os.mkdir(working_path)
-            pass
-        return working_path
+        working_path = os.path.join(rootPath,"working")
+        data_path = os.path.join(rootPath,"working","data")
+        version_path = os.path.join(rootPath,"working",version)
+        self.mkdir(working_path)
+        self.mkdir(data_path)
+        self.mkdir(version_path)
+        return version_path
      
     def getEngine(self,configList,ig_version):
         engine = None
