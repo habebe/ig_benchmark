@@ -52,6 +52,7 @@ class Colors:
 
 
 def _hilite_(string, status, bold):
+    return string
     attr = []
     if status == 1:
         # green
@@ -410,12 +411,12 @@ class operation:
 
     @classmethod
     def error(self,message):
-        print >> sys.stderr,_hilite_("[Error]",False,True),_hilite_(message,False,False)
+        print >> sys.stderr,_hilite_("\t\t[Error]",False,True),_hilite_(message,False,False)
         return
 
     @classmethod
     def warn(self,message):
-        print >> sys.stderr,_hilite_("[Warning]",False,True),_hilite_(message,False,False)
+        print >> sys.stderr,_hilite_("\t\t[Warning]",False,True),_hilite_(message,False,False)
         return
     
     def usage(self,fileName):
