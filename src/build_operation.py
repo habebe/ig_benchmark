@@ -32,6 +32,9 @@ class operation(operations.operation):
         if platform.system().lower().find("darwin") >= 0:
             env["IG_HOME"] = os.path.join(self.ig_home,"mac86_64")
             pass
+        elif platform.system().lower().find("linux") >= 0:
+            env["IG_HOME"] = os.path.join(self.ig_home,"linux86_64")
+            pass
         print env["IG_HOME"]
         status = False
         try:
