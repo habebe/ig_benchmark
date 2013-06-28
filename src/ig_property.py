@@ -9,6 +9,7 @@ class __Defaults__:
         "IG.SessionPool.ThreadBasedSessionPool.InitialCacheSizeKb":1000,
         "IG.SessionPool.ThreadBasedSessionPool.MaximumCacheSizeKb":5000000,
         "IG.SessionPool.ThreadBasedSessionPool.LockWaitTime":10,
+        "IG.SessionPool.ThreadBasedSessionPool.SizeHardLimit":256,
         "IG.PageSize":16384
         }
     

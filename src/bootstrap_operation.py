@@ -187,7 +187,7 @@ class operation(operations.operation):
                 print "\t\tBootstrap database ",
                 print "template:{0} version:{1}".format(project,ig_version),
                 print "pre-allocate-container:{0}".format(containers),
-                print "use_index:{0}".format(self.hasOption("no_index")),
+                print "use_index:{0}".format(not self.hasOption("no_index")),
                 sys.stdout.flush()
                 pass
             if self.verbose > 0:
