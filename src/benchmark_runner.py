@@ -97,7 +97,7 @@ class benchmark_runner(threading.Thread):
         dataset = None
         self.operation.removeProfileData(self.working_path,self.profile_tag)
         env = self.operation.getEnv(self.engine.version,self.engine.home)
-        arguments = ["java","-jar",self.jar,
+        arguments = ["java","-Xmx5000","-jar",self.jar,
                      "-property",self.propertyFile.fileName,
                      "-threads",str(self.threads),
                      "-tx_size",str(self.tx_size),
