@@ -118,61 +118,71 @@ class operation(operations.operation):
     def updateDatabase(self,runner):
         if not self.db:
             return
+        if (runner.profile == None) or (len(runner.profile) == 0):
+            self.error("Current run does not contain any benchmark data.")
+            return
         engine_object = self.db.create_unique_object(db_model.engine,"name",runner.engine.version,description=runner.engine.version)
         config_object = self.db.create_unique_object(db_model.config,"name",runner.configObject.getFullName(),description=runner.configObject.getFullName())
         if self.case_object:
-            platform_object = self.db.create_unique_object(db_model.platform,"name",self.db.hostname(),type=runner.profile["os"])
-            if runner.use_index:
-                index_object = self.db.create_unique_object(db_model.index_type,"name","gr")
-            else:
-                index_object = self.db.create_unique_object(db_model.index_type,"name","none")
+            for runner_profile in runner.profile:
+                profile_data = runner_profile["data"]
+                if profile_data.has_key("Q"):
+                    print "\t\t\tQuery rate:",profile_data["rate"]," Size:",profile_data["size"]
+                    platform_object = self.db.create_unique_object(db_model.platform,"name",self.db.hostname(),type=runner_profile["os"])
+                    if runner.use_index:
+                        index_object = self.db.create_unique_object(db_model.index_type,"name","gr")
+                    else:
+                        index_object = self.db.create_unique_object(db_model.index_type,"name","none")
+                        pass
+                    
+                    case_data_object = self.db.create_object(db_model.case_data,
+                                                             timestamp=self.db.now_string(True),
+                                                             case_id=self.case_object.id,
+                                                             engine_id=engine_object.id,
+                                                             tag_id=self.tag_object.id,
+                                                             size=profile_data["size"],
+                                                             time=runner_profile["time"],
+                                                             memory_init=runner_profile["memInit"],
+                                                             memory_used=runner_profile["memUsed"],
+                                                             memory_committed=runner_profile["memCommitted"],
+                                                             memory_max=runner_profile["memMax"],
+                                                             rate=profile_data["rate"],
+                                                             page_size=runner.page_size,
+                                                             cache_init=runner.propertyFile.getInitCache(),
+                                                             cache_max=runner.propertyFile.getMaxCache(),
+                                                             tx_size=runner.tx_size,
+                                                             platform_id=platform_object.id,
+                                                             threads=runner.threads,
+                                                             index_id=index_object.id,
+                                                             config_id=config_object.id,
+                                                             status=1
+                                                             )
+                    case_data_key = case_data_object.generateKey()
+                    case_data_stat_object = self.db.fetch_using_generic(db_model.case_data_stat,
+                                                                        key=case_data_key,
+                                                                        case_id=self.case_object.id
+                                                                        )
+                    if (len(case_data_stat_object) == 0):
+                        case_data_stat_object = self.db.create_unique_object(db_model.case_data_stat,
+                                                                             "key",case_data_key,
+                                                                             case_id=self.case_object.id
+                                                                             )
+                    else:
+                        case_data_stat_object = case_data_stat_object[0]
+                        pass
+                    case_data_stat_object.addCounter()
+                    case_data_stat_object.setRateStat(profile_data["rate"])
+                    case_data_stat_object.setTimeStat(runner_profile["time"])
+                    case_data_stat_object.setMemInitStat(runner_profile["memInit"])
+                    case_data_stat_object.setMemUsedStat(runner_profile["memUsed"])
+                    case_data_stat_object.setMemCommittedStat(runner_profile["memCommitted"])
+                    case_data_stat_object.setMemMaxStat(runner_profile["memMax"])
+                    self.db.update(case_data_stat_object)
+                    pass
                 pass
-            profile_data = runner.profile["data"]
-            case_data_object = self.db.create_object(db_model.case_data,
-                                                     timestamp=self.db.now_string(True),
-                                                     case_id=self.case_object.id,
-                                                     engine_id=engine_object.id,
-                                                     tag_id=self.tag_object.id,
-                                                     size=profile_data["size"],
-                                                     time=runner.profile["time"],
-                                                     memory_init=runner.profile["memInit"],
-                                                     memory_used=runner.profile["memUsed"],
-                                                     memory_committed=runner.profile["memCommitted"],
-                                                     memory_max=runner.profile["memMax"],
-                                                     rate=profile_data["rate"],
-                                                     page_size=runner.page_size,
-                                                     cache_init=runner.propertyFile.getInitCache(),
-                                                     cache_max=runner.propertyFile.getMaxCache(),
-                                                     tx_size=runner.tx_size,
-                                                     platform_id=platform_object.id,
-                                                     threads=runner.threads,
-                                                     index_id=index_object.id,
-                                                     config_id=config_object.id,
-                                                     status=1
-                                                     )
-            case_data_key = case_data_object.generateKey()
-            case_data_stat_object = self.db.fetch_using_generic(db_model.case_data_stat,
-                                                                key=case_data_key,
-                                                                case_id=self.case_object.id
-                                                                )
-            if (len(case_data_stat_object) == 0):
-                case_data_stat_object = self.db.create_unique_object(db_model.case_data_stat,
-                                                                     "key",case_data_key,
-                                                                     case_id=self.case_object.id
-                                                                     )
-            else:
-                case_data_stat_object = case_data_stat_object[0]
-                pass
-            case_data_stat_object.addCounter()
-            case_data_stat_object.setRateStat(profile_data["rate"])
-            case_data_stat_object.setTimeStat(runner.profile["time"])
-            case_data_stat_object.setMemInitStat(runner.profile["memInit"])
-            case_data_stat_object.setMemUsedStat(runner.profile["memUsed"])
-            case_data_stat_object.setMemCommittedStat(runner.profile["memCommitted"])
-            case_data_stat_object.setMemMaxStat(runner.profile["memMax"])
-            self.db.update(case_data_stat_object)
             pass
         pass
+    
     
     def operate(self):
         if operations.operation.operate(self):

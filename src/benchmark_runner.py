@@ -60,12 +60,10 @@ class benchmark_runner(threading.Thread):
         if len(self.configObject.hosts) > 0:
             if len(self.configObject.hosts[0].disks) > 0:
                 p = os.path.join(self.configObject.hosts[0].disks[0].location,self.version,self.template)
-                #print self.operation.output_string("Bootpath:{0}".format(p),True,True)
                 bootPath = "{0}::{1}".format(self.configObject.hosts[0].address,p)
                 pass
             pass
         if self.new_graph:
-            #print "Create new graph"
             bootstrap = bootstrap_operation.operation()
             arguments = [
                 "--root","{0}".format(self.root_path),
@@ -86,7 +84,6 @@ class benchmark_runner(threading.Thread):
         self.profile_tag = str(int(round(time.time() * 1000)))
         project_path = os.path.join(self.working_path,self.template)
         self.propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","{0}.properties".format(self.profile_tag)))
-        #print self.operation.output_string("Generating ingest propertyFile {0}".format(self.propertyFile.fileName),True,False)
         self.propertyFile.setLockServer(self.configObject.lockserver)
         self.propertyFile.setBootPath(bootPath)
         self.propertyFile.generate()
@@ -116,6 +113,12 @@ class benchmark_runner(threading.Thread):
             arguments.append("-ops")
             arguments.append("V")
             arguments.append("-no_map")
+        elif self.operation.name == "edge_ingest":
+            dataset = self.operation.GenerateDataset(self.root_path,self.template,self.size,False)
+            arguments.append("-op_path")
+            arguments.append(dataset)
+            arguments.append("-ops")
+            arguments.append("V,E")
         elif self.operation.name == "query":
             dataset = self.operation.GenerateQuery(self.root_path,self.template,self.size,self.graph_size,self.vertex,self.dist)
             if dataset == None:

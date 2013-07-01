@@ -14,7 +14,7 @@ import benchmark_runner
 
 class operation(operations.operation):
     def __init__(self):
-        operations.operation.__init__(self,"vertex_ingest")
+        operations.operation.__init__(self,"edge_ingest")
         self.add_argument("root","str",".","Root path.")
         self.add_argument("template","str",None,"template name")
         self.add_argument("page_size","int","14","page size to use applicable when a new graph is created (use pows of two) (12 for 4K up to 16 for 64K)")
@@ -56,8 +56,6 @@ class operation(operations.operation):
                                                        timestamp=self.db.now_string(True))
         
         rootPath = os.path.dirname(db_model.suite.RootSuite.get_path())
-
-        #print template,configNames,page_size,useIndex,new_graph,size,threads,txsize,txlimit,cache,ig_version
         self.run_operation(ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
         pass
 
@@ -84,7 +82,6 @@ class operation(operations.operation):
                                     for iThreads in threads:
                                         for iTxSize in txsize:
                                             for iTxLimit in txlimit:
-                                                
                                                 runner = benchmark_runner.benchmark_runner(working_path,rootPath,self,
                                                                                            new_graph,iVersion,iTemplate,iConfig,iSize,iSize,
                                                                                            iPageSize,iCache,iUseIndex,iThreads,iTxSize,iTxLimit,
@@ -125,8 +122,8 @@ class operation(operations.operation):
         if self.case_object:
             for runner_profile in runner.profile:
                 profile_data = runner_profile["data"]
-                print profile_data
-                if profile_data.has_key("V"):
+                if profile_data.has_key("E"):
+                    print "\t\t\tEdge ingest rate:",profile_data["rate"]," Size:",profile_data["size"]
                     platform_object = self.db.create_unique_object(db_model.platform,"name",self.db.hostname(),type=runner_profile["os"])
                     if runner.use_index:
                         index_object = self.db.create_unique_object(db_model.index_type,"name","gr")
@@ -181,7 +178,7 @@ class operation(operations.operation):
                 pass
             pass
         pass
-    
+       
     def operate(self):
         if operations.operation.operate(self):
             rootPath = self.getSingleOption("root")

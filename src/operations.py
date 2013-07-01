@@ -294,7 +294,7 @@ class operation:
         eventsName  = os.path.join(working_path,"{0}.benchmark.events".format(tag))
         profileName = os.path.join(working_path,"{0}.benchmark.profile".format(tag))
         events  = []
-        profile = None
+        profile = []
         if os.path.exists(eventsName):
             f = file(eventsName,"r")
             line = f.readline()
@@ -309,7 +309,7 @@ class operation:
             line = f.readline()
             while len(line):
                 line = eval(line)
-                profile = line
+                profile.append(line)
                 line = f.readline()
                 pass
             pass
@@ -537,6 +537,7 @@ import build_operation
 import bootstrap_operation
 import dataset_operation
 import vertex_ingest_operation
+import edge_ingest_operation
 import query_operation
 import report_operation
 import generate_query_operation
@@ -555,6 +556,7 @@ def populate():
         add_operation(dataset_operation.operation())
         add_operation(generate_query_operation.operation())
         add_operation(vertex_ingest_operation.operation())
+        add_operation(edge_ingest_operation.operation())
         add_operation(query_operation.operation())
         add_operation(report_operation.operation())
         add_operation(merge_operation.operation())
