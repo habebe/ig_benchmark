@@ -61,7 +61,7 @@ class benchmark_runner(threading.Thread):
             if len(self.configObject.hosts[0].disks) > 0:
                 p = os.path.join(self.configObject.hosts[0].disks[0].location,self.version,self.template)
                 #print self.operation.output_string("Bootpath:{0}".format(p),True,True)
-                bootPath = p
+                bootPath = "{0}::{1}".format(self.configObject.hosts[0].address,p)
                 pass
             pass
         if self.new_graph:

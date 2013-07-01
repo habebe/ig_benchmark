@@ -183,11 +183,12 @@ class operation(operations.operation):
                     self.error("Project path '{0}' does not exist after an attempted build.".format(project))
                     return False
                 pass
+            page_size = self.getSingleOption("page_size")
             if self.verbose == 0:
                 print "\t\tBootstrap database ",
                 print "template:{0} version:{1}".format(project,ig_version),
                 print "pre-allocate-container:{0}".format(containers),
-                print "use_index:{0}".format(not self.hasOption("no_index")),
+                print "use_index:{0} page_size:{1}".format(not self.hasOption("no_index"),page_size),
                 sys.stdout.flush()
                 pass
             if self.verbose > 0:
@@ -197,6 +198,8 @@ class operation(operations.operation):
             counter = 0
             bootPath = None
             storage = []
+            masterHost = None
+            masterPath = None
             for host in configObject.hosts:
                 for disk in host.disks:
                     p = self.mkpath(host.address,disk.location,ig_version,project)
@@ -204,7 +207,11 @@ class operation(operations.operation):
                         if self.verbose > 0:
                             print self.output_string("Bootpath:{0}".format(p),True,True)
                             pass
-                        bootPath = p
+                        bootPath = "{0}".format(p)
+                        pass
+                    if masterPath == None:
+                        masterPath = p
+                        masterHost = host.address
                         pass
                     storage.append(("location.{0}".format(counter),host.address,p))
                     if self.verbose > 0:
@@ -220,7 +227,9 @@ class operation(operations.operation):
                 pass
             propertyFile.setLockServer(configObject.lockserver)
             propertyFile.setBootPath(bootPath)
-            page_size = self.getSingleOption("page_size")
+            propertyFile.properties["IG.MasterDatabaseHost"] = masterHost
+            propertyFile.properties["IG.MasterPath"] = masterPath
+            
             if page_size:
                 propertyFile.setPageSize(pow(2,int(page_size)))
                 pass
