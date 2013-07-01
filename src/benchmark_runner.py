@@ -97,7 +97,7 @@ class benchmark_runner(threading.Thread):
         dataset = None
         self.operation.removeProfileData(self.working_path,self.profile_tag)
         env = self.operation.getEnv(self.engine.version,self.engine.home)
-        arguments = ["java","-Xmx5000","-jar",self.jar,
+        arguments = ["java","-Xmx5G","-jar",self.jar,
                      "-property",self.propertyFile.fileName,
                      "-threads",str(self.threads),
                      "-tx_size",str(self.tx_size),
@@ -105,7 +105,6 @@ class benchmark_runner(threading.Thread):
                      "-tx_limit",str(self.tx_limit),
                      "-profile",self.profile_tag,
                      ]
-
         if self.operation.name == "vertex_ingest":
             dataset = self.operation.GenerateDataset(self.root_path,self.template,self.size,True)
             arguments.append("-op_path")
@@ -129,7 +128,7 @@ class benchmark_runner(threading.Thread):
             arguments.append("Q")
             pass
 
-        #print string.join(arguments)
+       
         print "\t\tRunning benchmark (version:{0} config:{1} threads:{2} tx_size:{3} tx_type:{4} tx_limit:{5})".format(self.engine.version,
                                                                                                                        self.config,
                                                                                                                        self.threads,
