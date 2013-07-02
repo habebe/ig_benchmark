@@ -118,7 +118,9 @@ class benchmark_runner(threading.Thread):
             pass
         self.propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","{0}.properties".format(self.profile_tag)))
         self.propertyFile.setLockServer(self.configObject.lockserver)
-        self.propertyFile.setBootPath(bootPath)
+        self.propertyFile.setBootPath("{0}::{1}".format(bootHost,bootPath))
+        self.propertyFile.properties["IG.MasterDatabaseHost"] = bootHost
+        self.propertyFile.properties["IG.MasterPath"] = bootPath
         self.propertyFile.generate()
         self.propertyFile.setPageSize(pow(2,self.page_size))
         self.jar = os.path.join(self.working_path,self.template,"build","benchmark.jar")
