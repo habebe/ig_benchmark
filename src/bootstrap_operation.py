@@ -175,9 +175,9 @@ class operation(operations.operation):
                     self.warn("Project path '{0}' does not exist. Trying to build project.".format(project))
                     pass
                 build = build_operation.operation()
-                build.parse(["--root","{0}".format(rootPath)])
-                build.parse(["--ig_home","{0}".format(engine.home)])
-                build.parse(["--ig_version","{0}".format(engine.version)])
+                build.parse(["--root","{0}".format(rootPath),
+                             "--ig_home","{0}".format(engine.home),
+                             "--ig_version","{0}".format(engine.version)])
                 build.operate()
                 if not os.path.exists(project_path):
                     self.error("Project path '{0}' does not exist after an attempted build.".format(project))
