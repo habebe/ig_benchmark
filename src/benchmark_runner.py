@@ -6,6 +6,7 @@ import ig_property
 import string
 import sys
 import bootstrap_operation
+import Service
 
 class benchmark_runner(threading.Thread):
     def __init__(self,_working_path,_root_path,_operation,
@@ -57,29 +58,49 @@ class benchmark_runner(threading.Thread):
             self.operation.error("Unable to find configuration for InfiniteGraph version '{0}' using config {1}.".format(self.version,self.config))
             return False
         bootPath = None
+        bootHost = None
         if len(self.configObject.hosts) > 0:
             if len(self.configObject.hosts[0].disks) > 0:
                 p = os.path.join(self.configObject.hosts[0].disks[0].location,self.version,self.template)
-                bootPath = "{0}::{1}".format(self.configObject.hosts[0].address,p)
+                bootHost = self.configObject.hosts[0].address
+                bootPath = p
                 pass
             pass
         if self.new_graph:
-            bootstrap = bootstrap_operation.operation()
-            arguments = [
-                "--root","{0}".format(self.root_path),
-                "--config",self.config,
-                "--project",self.template,
-                "--page_size",self.page_size,
-                "--containers",1,
-                "--ig_version",self.version
-                ]
-            if not self.use_index:
-                arguments.append("--no_index")
+            if Service.IsLocalAddress(bootHost):
+                bootstrap = bootstrap_operation.operation()
+                arguments = [
+                    "--root","{0}".format(self.root_path),
+                    "--config",self.config,
+                    "--project",self.template,
+                    "--page_size",self.page_size,
+                    "--containers",1,
+                    "--ig_version",self.version
+                    ]
+                if not self.use_index:
+                    arguments.append("--no_index")
+                    pass
+                bootstrap.parse(arguments)
+                if not bootstrap.operate():
+                    self.operation.error("--Failed to bootstrap database.")
+                    return False
                 pass
-            bootstrap.parse(arguments)
-            if not bootstrap.operate():
-                self.operation.error("--Failed to bootstrap database.")
-                return False
+            else:
+                remoteRequest = Service.Request(bootHost)
+                remoteRequest.init()
+                remoteRequest.request("bootstrap",
+                                      [
+                                          "--root",".",
+                                          "--config",self.config,
+                                          "--project",self.template,
+                                          "--page_size",self.page_size,
+                                          "--containers",1,
+                                          "--ig_version",self.version
+                                          ]
+                                      )
+                remoteRequest.run()
+                print remoteRequest.response
+                pass
             pass
         self.profile_tag = str(int(round(time.time() * 1000)))
         project_path = os.path.join(self.working_path,self.template)

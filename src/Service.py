@@ -3,6 +3,26 @@ import sys
 import operations
 import threading
 
+def GetHostName():
+    return socket.gethostname()
+
+def IsLocalAddress(address):
+    if address == "127.0.0.1":
+        return True
+    hostname = GetHostName()
+    if address == hostname:
+        return True
+    try:
+        resolved = socket.gethostbyname(address)
+        local = socket.gethostbyname(hostname)
+        if local == resolved:
+            return True
+        pass
+    except:
+        pass
+    return False
+    
+
 class Server:
     DEFAULT_PORT = 50000
     
@@ -62,8 +82,6 @@ class Server:
             if object == None:
                 print "Error: Unknown operation {0}".format(op)
                 return False
-            object.options = []
-            object.arguments = []
             if data.has_key("args"):
                 object.parse(data["args"])
                 pass
