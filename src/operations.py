@@ -495,8 +495,9 @@ class operation:
                 argumentNameList.append("%s="%(i.name))
                 pass
             pass
-       
+
         try:
+            self.optionsMap.clear()
             self.options, self.arguments = getopt.getopt(arguments, "",argumentNameList)
             for o,a in self.options:
                 for arg in self.argumentDescription:
@@ -542,6 +543,7 @@ import query_operation
 import report_operation
 import generate_query_operation
 import merge_operation
+import service_operation
     
 def add_operation(operation):
     operations[operation.name] = operation
@@ -560,6 +562,7 @@ def populate():
         add_operation(query_operation.operation())
         add_operation(report_operation.operation())
         add_operation(merge_operation.operation())
+        add_operation(service_operation.operation())
         pass
     pass
 

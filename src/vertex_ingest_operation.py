@@ -84,7 +84,7 @@ class operation(operations.operation):
                                     for iThreads in threads:
                                         for iTxSize in txsize:
                                             for iTxLimit in txlimit:
-                                                
+                                                #print "YYY:",ig_version,template,size,configNames,page_size,cache,useIndex,threads,txsize,txlimit
                                                 runner = benchmark_runner.benchmark_runner(working_path,rootPath,self,
                                                                                            new_graph,iVersion,iTemplate,iConfig,iSize,iSize,
                                                                                            iPageSize,iCache,iUseIndex,iThreads,iTxSize,iTxLimit,
@@ -197,7 +197,9 @@ class operation(operations.operation):
             txlimit       = self.getOption("txlimit")
             cache         = self.getOption("cache")
             ig_version    = self.getOption("ig_version")
-            self.run_operation(ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
+            
+            #print "XXX:",ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit
+            return self.run_operation(ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
         return False
 
         
