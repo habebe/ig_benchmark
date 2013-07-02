@@ -106,16 +106,14 @@ class benchmark_runner(threading.Thread):
         self.profile_tag = str(int(round(time.time() * 1000)))
         project_path = os.path.join(self.working_path,self.template)
         if not os.path.exists(project_path):
-            if self.verbose > 0:
-                self.warn("Project path '{0}' does not exist. Trying to build project.".format(project))
-                pass
+            self.operation.warn("Project path '{0}' does not exist. Trying to build project.".format(self.template))
             build = build_operation.operation()
-            build.parse(["--root","{0}".format(rootPath),
-                         "--ig_home","{0}".format(engine.home),
-                         "--ig_version","{0}".format(engine.version)])
+            build.parse(["--root","{0}".format(self.root_path),
+                         "--ig_home","{0}".format(self.engine.home),
+                         "--ig_version","{0}".format(self.engine.version)])
             build.operate()
             if not os.path.exists(project_path):
-                self.error("Project path '{0}' does not exist after an attempted build.".format(project))
+                self.error("Project path '{0}' does not exist after an attempted build.".format(self.template))
                 return False
             pass
         self.propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","{0}.properties".format(self.profile_tag)))
