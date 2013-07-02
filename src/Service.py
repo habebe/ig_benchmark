@@ -167,7 +167,6 @@ class Request(threading.Thread):
         print self.host,self.port
         for res in socket.getaddrinfo(self.host,self.port, socket.AF_UNSPEC, socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
-            print sa
             try:
                 self.socket = socket.socket(af, socktype, proto)
             except socket.error, msg:
@@ -176,7 +175,7 @@ class Request(threading.Thread):
                 continue
             try:
                 self.socket.connect(sa)
-                print "Connected {0}".format(sa)
+                print "\t\t\tRemote Request connected {0}".format(sa)
             except socket.error, msg:
                 self.socket = None
                 print "Connect Error:",msg,sa
@@ -197,7 +196,8 @@ class Request(threading.Thread):
 
     def run(self):
         if self.requestOptions and self.socket:
-            print "Sending : ",self.requestOptions
+            print "\t\t\tRemote Request Sending"
+            print "\t\t\t",self.requestOptions
             self.socket.send(str(self.requestOptions))
             self.response = self.socket.recv(1024)
             return eval(self.response)
