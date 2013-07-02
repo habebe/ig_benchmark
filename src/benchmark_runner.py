@@ -6,6 +6,7 @@ import ig_property
 import string
 import sys
 import bootstrap_operation
+import build_operation
 import Service
 
 class benchmark_runner(threading.Thread):
@@ -104,6 +105,19 @@ class benchmark_runner(threading.Thread):
             pass
         self.profile_tag = str(int(round(time.time() * 1000)))
         project_path = os.path.join(self.working_path,self.template)
+        if not os.path.exists(project_path):
+            if self.verbose > 0:
+                self.warn("Project path '{0}' does not exist. Trying to build project.".format(project))
+                pass
+            build = build_operation.operation()
+            build.parse(["--root","{0}".format(rootPath),
+                         "--ig_home","{0}".format(engine.home),
+                         "--ig_version","{0}".format(engine.version)])
+            build.operate()
+            if not os.path.exists(project_path):
+                self.error("Project path '{0}' does not exist after an attempted build.".format(project))
+                return False
+            pass
         self.propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","{0}.properties".format(self.profile_tag)))
         self.propertyFile.setLockServer(self.configObject.lockserver)
         self.propertyFile.setBootPath(bootPath)
