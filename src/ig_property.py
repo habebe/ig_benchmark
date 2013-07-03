@@ -4,13 +4,16 @@ class __Defaults__:
     Defaults = {
         "IG.BootFilePath":".",
         "IG.LockServerHost":"127.0.0.1",
-        "IG.UseMROWTransactions":"false",
+        "IG.UseMROWTransactions":"true",
         "IG.Indexing.GraphIndexSensitive":"true",
         "IG.SessionPool.ThreadBasedSessionPool.InitialCacheSizeKb":1000,
         "IG.SessionPool.ThreadBasedSessionPool.MaximumCacheSizeKb":5000000,
         "IG.SessionPool.ThreadBasedSessionPool.LockWaitTime":10,
         "IG.SessionPool.ThreadBasedSessionPool.SizeHardLimit":256,
-        "IG.PageSize":16384
+        "IG.SessionPool.ThreadBasedSessionPool.SessionWaitTime":-1,
+        "IG.SessionPool.ThreadBasedSessionPool.LockWaitTime":-1,
+        "IG.PageSize":16384,
+        #"IG.GetLockConflictInfo":"true",      
         }
     
 class PropertyFile:

@@ -124,6 +124,12 @@ class config(_name_description_):
         pass
     pass
 
+class process_description(_name_description_):
+    def __init__(self):
+        _name_description_.__init__(self)
+        pass
+    pass
+
 class tag(_name_):
     _property_ = _name_._property_ + [
         ("timestamp",db_types.DATETIME),
@@ -399,16 +405,21 @@ class case_data_stat(db_object):
         value = self.key_data[9]
         return value
 
-    def index_type_id(self):
+    def processes(self):
         self.generate_key_data()
         value = self.key_data[10]
+        return value
+
+    def index_type_id(self):
+        self.generate_key_data()
+        value = self.key_data[11]
         return value
 
    
     def object_data(self,name,default_value):
         self.generate_key_data()
-        if len(self.key_data) >= 13:
-            data = self.key_data[12]
+        if len(self.key_data) >= 15:
+            data = self.key_data[14]
             if data.has_key(name):
                 return data[name]
             pass
@@ -422,13 +433,24 @@ class case_data_stat(db_object):
 
     def config_id(self):
         self.generate_key_data()
-        value = self.key_data[11]
+        value = self.key_data[12]
         return value
 
     def config(self):
         value = self.config_id()
         if self.mapper and self.mapper.CONFIG_MAP.has_key(value):
             return self.mapper.CONFIG_MAP[value]
+        return str(value)
+
+    def process_description_id(self):
+        self.generate_key_data()
+        value = self.key_data[13]
+        return value
+
+    def config(self):
+        value = self.process_description_id()
+        if self.mapper and self.mapper.PROCESS_DESCRIPTION_MAP.has_key(value):
+            return self.mapper.PROCESS_DESCRIPTION_MAP[value]
         return str(value)
 
     def cache_init(self):
@@ -588,8 +610,10 @@ class case_data(db_object):
         
         ("platform_id",db_types.INTEGER),
         ("threads",db_types.INTEGER),
+        ("processes",db_types.INTEGER),
         ("index_id",db_types.INTEGER),
         ("config_id",db_types.INTEGER),
+        ("process_description_id",db_types.INTEGER),
         
         ("time",db_types.REAL),
         ("rate",db_types.REAL),
@@ -620,8 +644,10 @@ class case_data(db_object):
         
         self.platform_id = None
         self.threads = None
+        self.processes = None
         self.index_id = None
         self.config_id = None
+        self.process_description_id = None
         
         self.time = None
         self.rate = None
@@ -638,7 +664,8 @@ class case_data(db_object):
             [self.case_id,self.engine_id,
              self.size,self.op_size,self.tx_size,
              self.page_size,self.cache_init,self.cache_max,
-             self.platform_id,self.threads,self.index_id,self.config_id,
+             self.platform_id,self.threads,self.processes,
+             self.index_id,self.config_id,self.process_description_id,
              self.data
              ]
             )
@@ -683,7 +710,7 @@ class case_data(db_object):
             self.case_id,self.engine_id,
             self.size,self.op_size,self.tx_size,
             self.page_size,self.cache_init,self.cache_max,
-            self.platform_id,self.threads,self.index_id,self.config_id,
+            self.platform_id,self.threads,self.processes,self.index_id,self.config_id,self.process_description_id,
             self.time,self.rate,
             self.memory_init,self.memory_used,self.memory_committed,self.memory_max,
             self.data ) = self_data
@@ -704,7 +731,7 @@ class case_data(db_object):
             self.case_id,self.engine_id,
             self.size,self.op_size,self.tx_size,
             self.page_size,self.cache_init,self.cache_max,
-            self.platform_id,self.threads,self.index_id,self.config_id,
+            self.platform_id,self.threads,self.processes,self.index_id,self.config_id,self.process_description_id,
             self.time,self.rate,
             self.memory_init,self.memory_used,self.memory_committed,self.memory_max,
             json.dumps(self.data))

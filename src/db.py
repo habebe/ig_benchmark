@@ -25,7 +25,8 @@ class db:
         db_model.case,
         db_model.case_data,
         db_model.case_data_stat,
-        db_model.config
+        db_model.config,
+        db_model.process_description,
         ]
 
     @classmethod

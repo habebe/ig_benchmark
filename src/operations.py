@@ -8,6 +8,7 @@ import db_model
 import socket
 import config
 import platform
+import threading
 
 class argument:
     def __init__(self,name,dataType,defaultValue,description):
@@ -107,8 +108,10 @@ class operation:
         return os.path.join(rootPath,"config")
 
 
+    GenerateDataset_Semaphore = threading.Semaphore()
     @classmethod
     def GenerateDataset(self,rootPath,template,size,vertexOnly):
+        self.GenerateDataset_Semaphore.acquire()
         dataPath = os.path.join(rootPath,"working","_dataset_")
         if not os.path.exists(dataPath):
             os.mkdir(dataPath)
@@ -144,10 +147,13 @@ class operation:
         else:
             print "\t\tReusing previously generated dataset template:{0} size:{1} path:{2}".format(template,size,dataPath)
             pass
+        self.GenerateDataset_Semaphore.release()
         return dataPath
 
+    GenerateQuery_Semaphore = threading.Semaphore()
     @classmethod
     def GenerateQuery(self,rootPath,template,size,graph_size,vertex,dist="uniform"):
+        self.GenerateQuery_Semaphore.acquire()
         dataPath = os.path.join(rootPath,"working","_dataset_")
         if not os.path.exists(dataPath):
             os.mkdir(dataPath)
@@ -179,6 +185,7 @@ class operation:
         else:
             print "\t\tReusing previously generated query template:{0} size:{1} path:{2}".format(template,size,dataPath)
             pass
+        self.GenerateQuery_Semaphore.release()
         return dataPath
     
     def getConfigList(self,rootPath,name):

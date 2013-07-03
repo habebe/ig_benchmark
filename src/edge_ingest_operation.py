@@ -122,7 +122,7 @@ class operation(operations.operation):
         if self.case_object:
             for runner_profile in runner.profile:
                 profile_data = runner_profile["data"]
-                if profile_data.has_key("E"):
+                if profile_data.has_key("op.E"):
                     print "\t\t\tEdge ingest rate:",profile_data["rate"]," Size:",profile_data["size"]
                     platform_object = self.db.create_unique_object(db_model.platform,"name",self.db.hostname(),type=runner_profile["os"])
                     if runner.use_index:

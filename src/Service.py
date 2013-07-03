@@ -25,7 +25,6 @@ def IsLocalAddress(address):
 
 class Server:
     DEFAULT_PORT = 50000
-    
     def init(self):
         self.socket = None
         print "\tCreating server on host:{0} port:{1}".format(self.host,self.port)

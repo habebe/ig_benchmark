@@ -347,7 +347,7 @@ class db_report:
     PLATFORM_MAP = {}
     INDEX_MAP = {}
     CONFIG_MAP = {}
-    
+    PROCESS_DESCRIPTION_MAP = {}
     def __init__(self,db):
         self.db = db
         pass
@@ -451,18 +451,6 @@ class db_report:
             for i in self.time_factor.keys():
                 time_factor_structure.append({"id":i,"name":"%sx"%(str(i))})
                 pass
-            self.description_structure = {
-                "name":case_object.name,
-                "description":case_object.description,
-                "ivar":
-                [
-                    {"name":"Group","data":tag_structure},
-                    {"name":"Template","data":template_structure},
-                    {"name":"Simulator","data":sim_structure},
-                    {"name":"Device Type","data":sim_type_structure},
-                    {"name":"Time Factor","data":time_factor_structure}
-                    ]
-                }
             pass
 
         def to_int(self,value):
@@ -592,6 +580,7 @@ class db_report:
         tags = self.db.fetch_using_generic(db_model.tag)
         index_type = self.db.fetch_using_generic(db_model.index_type)
         config_type = self.db.fetch_using_generic(db_model.config)
+        process_description_type = self.db.fetch_using_generic(db_model.process_description)
         for i in tags:
             self.TAG_MAP[i.id] = i.name
             pass
@@ -609,6 +598,9 @@ class db_report:
             pass
         for i in config_type:
             self.CONFIG_MAP[i.id] = i.name
+            pass
+        for i in process_description_type:
+            self.PROCESS_DESCRIPTION_MAP[i.id] = i.name
             pass
         pass
 

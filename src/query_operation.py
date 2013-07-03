@@ -27,6 +27,7 @@ class operation(operations.operation):
         self.add_argument("txlimit","int",-1,"limit the number of transactions to a given number")
         self.add_argument("cache","eval",(1000,500000),"cache size given as a set of tuplets (in kB) (init,max) or [(init_1,max_1),(init_2,max_2),.....]")
         self.add_argument("ig_version","str",None,"InfiniteGraph version to use.")
+        self.add_argument("process","eval",'(None,1)',"concurrent processes to use given using the format [(host,numberOfProcesses),(host2,numberOfProcess),...] default is [(127.0.0.1,1)] i.e. local host with 1 process.")
         self.tag_object = None
         self.case_object = None
         self.cache = None
@@ -50,16 +51,17 @@ class operation(operations.operation):
         txsize       = self.getOption_data(data,"txsize")
         txlimit      = self.getOption_data(data,"txlimit")
         ig_version   = self.getOption_data(data,"ig_version")
+        process      = self.getOption_data(data,"process")
         self.tag_object = self.db.create_unique_object(db_model.tag,"name",kwargs["tag"],
                                                        timestamp=self.db.now_string(True))
         
         rootPath = os.path.dirname(db_model.suite.RootSuite.get_path())
 
        
-        self.run_operation(rootPath,vertex,template,configName,page_size,cache,graph_size,size,threads,txsize,txlimit,ig_version)
+        self.run_operation(rootPath,vertex,template,configName,page_size,cache,graph_size,size,threads,txsize,txlimit,ig_version,process)
         pass
 
-    def run_operation(self,rootPath,vertex,template,configNames,page_size,cache,graph_size,size,threads,txsize,txlimit,ig_version):
+    def run_operation(self,rootPath,vertex,template,configNames,page_size,cache,graph_size,size,threads,txsize,txlimit,ig_version,process):
         if template == None:
             self.error("template is required but not given.")
             return False
@@ -86,11 +88,15 @@ class operation(operations.operation):
                                         for iThreads in threads:
                                             for iTxSize in txsize:
                                                 for iTxLimit in txlimit:
-                                                    runner = benchmark_runner.benchmark_runner(working_path,rootPath,self,
-                                                                                               False,iVersion,iTemplate,iConfig,iSize,iGraphSize,
-                                                                                               iPageSize,iCache,True,iThreads,iTxSize,iTxLimit,
-                                                                                               "read",iVertex)
-                                                    runners.append(runner)
+                                                    for iProcess in process:
+                                                        runner = benchmark_runner.benchmark_runner(working_path,rootPath,self,
+                                                                                                   False,iVersion,iTemplate,iConfig,iSize,iGraphSize,
+                                                                                                   iPageSize,iCache,True,iThreads,iTxSize,iTxLimit,
+                                                                                                   "read",
+                                                                                                   iVertex,
+                                                                                                   process=iProcess
+                                                                                                   )
+                                                        runners.append(runner)
                                                     pass
                                                 pass
                                             pass
@@ -126,7 +132,7 @@ class operation(operations.operation):
         if self.case_object:
             for runner_profile in runner.profile:
                 profile_data = runner_profile["data"]
-                if profile_data.has_key("Q"):
+                if profile_data.has_key("op.Q"):
                     print "\t\t\tQuery rate:",profile_data["rate"]," Size:",profile_data["size"]
                     platform_object = self.db.create_unique_object(db_model.platform,"name",self.db.hostname(),type=runner_profile["os"])
                     if runner.use_index:
@@ -134,7 +140,7 @@ class operation(operations.operation):
                     else:
                         index_object = self.db.create_unique_object(db_model.index_type,"name","none")
                         pass
-                    
+                    process_description_object = self.db.create_unique_object(db_model.process_description,"name",runner.getProcessDescription(),description=runner.getProcessDescription())
                     case_data_object = self.db.create_object(db_model.case_data,
                                                              timestamp=self.db.now_string(True),
                                                              case_id=self.case_object.id,
@@ -153,6 +159,8 @@ class operation(operations.operation):
                                                              tx_size=runner.tx_size,
                                                              platform_id=platform_object.id,
                                                              threads=runner.threads,
+                                                             processes=runner.number_processes,
+                                                             process_description_id=process_description_object.id,
                                                              index_id=index_object.id,
                                                              config_id=config_object.id,
                                                              status=1
@@ -199,7 +207,8 @@ class operation(operations.operation):
             txlimit       = self.getOption("txlimit")
             cache         = self.getOption("cache")
             ig_version    = self.getOption("ig_version")
-            self.run_operation(rootPath,vertex,template,configName,page_size,cache,graph_size,size,threads,txsize,txlimit,ig_version)
+            process       = self.getOption("process")
+            self.run_operation(rootPath,vertex,template,configName,page_size,cache,graph_size,size,threads,txsize,txlimit,ig_version,process)
         return False
 
         
