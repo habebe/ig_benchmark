@@ -52,7 +52,7 @@ class threaded_runner(threading.Thread):
                 arguments.append("-ops")
                 arguments.append("V,E")
             elif self.parent.operation.name == "query":
-                dataset = self.parent.operation.GenerateQuery(self.parent.root_path,self.parent.template,self.parent.size,self.parent.graph_size,self.parent.vertex,self.parent.dist)
+                dataset = self.parent.5operation.GenerateQuery(self.parent.root_path,self.parent.template,self.parent.size,self.parent.graph_size,self.parent.vertex,self.parent.dist)
                 if dataset == None:
                     return
                 arguments.append("-op_file")
@@ -201,7 +201,7 @@ class benchmark_runner:
                          "--ig_version","{0}".format(self.engine.version)])
             build.operate()
             if not os.path.exists(project_path):
-                self.error("Project path '{0}' does not exist after an attempted build.".format(self.template))
+                self.operation.error("Project path '{0}' does not exist after an attempted build.".format(self.template))
                 return False
             pass
         self.propertyFile = ig_property.PropertyFile(os.path.join(project_path,"properties","{0}.properties".format(self.profile_tag)))
