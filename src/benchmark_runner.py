@@ -52,7 +52,7 @@ class threaded_runner(threading.Thread):
                 arguments.append("-ops")
                 arguments.append("V,E")
             elif self.parent.operation.name == "query":
-                dataset = self.parent.5operation.GenerateQuery(self.parent.root_path,self.parent.template,self.parent.size,self.parent.graph_size,self.parent.vertex,self.parent.dist)
+                dataset = self.parent.operation.GenerateQuery(self.parent.root_path,self.parent.template,self.parent.size,self.parent.graph_size,self.parent.vertex,self.parent.dist)
                 if dataset == None:
                     return
                 arguments.append("-op_file")
