@@ -447,7 +447,7 @@ class case_data_stat(db_object):
         value = self.key_data[13]
         return value
 
-    def config(self):
+    def process_description(self):
         value = self.process_description_id()
         if self.mapper and self.mapper.PROCESS_DESCRIPTION_MAP.has_key(value):
             return self.mapper.PROCESS_DESCRIPTION_MAP[value]
