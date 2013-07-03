@@ -392,6 +392,6 @@ class operation(operations.operation):
                 status = status and self.merge_case_data()
                 status = status and self.merge_case_data_stat()
                 pass
-            return status
+            return True
         return True
 

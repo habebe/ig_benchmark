@@ -130,7 +130,7 @@ class operation(operations.operation):
                     else:
                         index_object = self.db.create_unique_object(db_model.index_type,"name","none")
                         pass
-                    
+                    process_description_object = self.db.create_unique_object(db_model.process_description,"name",runner.getProcessDescription(),description=runner.getProcessDescription())
                     case_data_object = self.db.create_object(db_model.case_data,
                                                              timestamp=self.db.now_string(True),
                                                              case_id=self.case_object.id,
@@ -151,6 +151,8 @@ class operation(operations.operation):
                                                              threads=runner.threads,
                                                              index_id=index_object.id,
                                                              config_id=config_object.id,
+                                                             processes=runner.number_processes,
+                                                             process_description_id=process_description_object.id,
                                                              status=1
                                                              )
                     case_data_key = case_data_object.generateKey()
