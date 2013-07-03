@@ -661,12 +661,21 @@ class case_data(db_object):
 
     def generateKey(self):
         return json.dumps(
-            [self.case_id,self.engine_id,
-             self.size,self.op_size,self.tx_size,
-             self.page_size,self.cache_init,self.cache_max,
-             self.platform_id,self.threads,self.processes,
-             self.index_id,self.config_id,self.process_description_id,
-             self.data
+            [self.case_id,  #0
+             self.engine_id, #1
+             self.size, #2
+             self.op_size, #3
+             self.tx_size,#4
+             self.page_size,#5
+             self.cache_init,#6
+             self.cache_max,#7
+             self.platform_id,#8
+             self.threads,#9
+             self.processes,#10
+             self.index_id,#11
+             self.config_id,#12
+             self.process_description_id,#13
+             self.data#14
              ]
             )
     

@@ -76,7 +76,7 @@ class threaded_runner(threading.Thread):
             if p.returncode == 0:
                 (self.events,self.profile) = self.parent.operation.readProfileData(self.parent.working_path,profile_tag)
                 pass
-            #self.parent.operation.removeProfileData(self.parent.working_path,profile_tag)
+            self.parent.operation.removeProfileData(self.parent.working_path,profile_tag)
             return True
         else:
             print self.process

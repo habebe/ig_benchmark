@@ -148,6 +148,10 @@ class operation(operations.operation):
         (self.source_config_map,self.target_config_map,self.config_id_map) = self.merge_description_objects(db_model.config,"config")
         return True
 
+    def merge_process_description(self):
+        (self.source_process_description_map,self.target_process_description_map,self.process_description_id_map) = self.merge_description_objects(db_model.process_description,"process_description")
+        return True
+
     def merge_case_type(self):
         (self.source_case_type_map,self.target_case_type_map,self.case_type_id_map) = self.merge_description_objects(db_model.case_type,"case_type")
         return True
@@ -263,13 +267,15 @@ class operation(operations.operation):
             platform = i.platform_id()
             index    = i.index_type_id()
             config   = i.config_id()
-
+            process_description = i.process_description_id()
+            
             data = json.loads(i.key)
             data[0]  = self.case_id_map[data[0]]
             data[1]  = self.engine_id_map[engine]
             data[8]  = self.platform_id_map[platform]
-            data[10] = self.index_type_id_map[index]
-            data[11] = self.config_id_map[config]
+            data[11] = self.index_type_id_map[index]
+            data[12] = self.config_id_map[config]
+            data[13] = self.process_description_id_map[process_description]
             #print "Adding Case Stat ID:",i.id
             case_data_stat_object = self.targetDB.create_unique_object(db_model.case_data_stat,
                                                                        "key",json.dumps(data),
@@ -346,7 +352,9 @@ class operation(operations.operation):
                                                            index_id=self.index_type_id_map[i.index_id],
                                                            config_id=self.config_id_map[i.config_id],
                                                            status=i.status,
-                                                           op_size=i.op_size
+                                                           op_size=i.op_size,
+                                                           processes=i.processes,
+                                                           process_description_id=self.process_description_id_map[i.process_description_id]
                                                            )
             pass
         return True
@@ -379,7 +387,7 @@ class operation(operations.operation):
             for source in sources:
                 self.sourceDB = db.db(source)
                 self.sourceDB.create_database()
-                status = self.merge_tag() and self.merge_platforms() and self.merge_index_types() and self.merge_engine() and self.merge_config() and self.merge_case_type()
+                status = self.merge_tag() and self.merge_platforms() and self.merge_process_description() and self.merge_index_types() and self.merge_engine() and self.merge_config() and self.merge_case_type()
                 status = status and self.merge_suite() and self.merge_case()
                 status = status and self.merge_case_data()
                 status = status and self.merge_case_data_stat()
