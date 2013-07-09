@@ -16,11 +16,9 @@ import ig_operation
 class operation(ig_operation.operation):
     def __init__(self):
         ig_operation.operation.__init__(self,
-                                        name="vertex_ingest",
-                                        txtype="write",
-                                        optypes=["op.V"])
+                                        name="pipeline_edge_ingest",
+                                        txtype="pipeline",
+                                        optypes=["op.E"])
         self.remove_argument("vertex")
         pass
     pass
-
-

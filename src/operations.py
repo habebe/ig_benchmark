@@ -390,7 +390,25 @@ class operation:
         self.argumentMap[name] = a
         return
 
-
+    def remove_argument(self,name):
+        if self.argumentMap.has_key(name):
+            self.argumentMap.pop(name)
+            counter = 0
+            done = (len(self.argumentDescription) == 0)
+            while not done:
+                o = self.argumentDescription[counter]
+                if o.name == name:
+                    self.argumentDescription.pop(counter)
+                    done = True
+                    pass
+                else:
+                    done = (counter >= len(self.argumentDescription))
+                    pass
+                counter += 1
+                pass
+            pass
+        pass
+    
     def setup_page_sizes(self,_page_size):
         page_size = []
         for i in _page_size:
@@ -555,6 +573,7 @@ import bootstrap_operation
 import dataset_operation
 import vertex_ingest_operation
 import edge_ingest_operation
+import pipeline_edge_ingest_operation
 import query_operation
 import report_operation
 import generate_query_operation
@@ -575,6 +594,7 @@ def populate():
         add_operation(generate_query_operation.operation())
         add_operation(vertex_ingest_operation.operation())
         add_operation(edge_ingest_operation.operation())
+        add_operation(pipeline_edge_ingest_operation.operation())
         add_operation(query_operation.operation())
         add_operation(report_operation.operation())
         add_operation(merge_operation.operation())
