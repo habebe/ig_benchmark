@@ -13,6 +13,8 @@ class __Defaults__:
         "IG.SessionPool.ThreadBasedSessionPool.SessionWaitTime":-1,
         "IG.SessionPool.ThreadBasedSessionPool.LockWaitTime":-1,
         "IG.PageSize":16384,
+        "IG.Placement.Distributed.Pipelining.EnablePipelining":"true",
+        "IG.Placement.Distributed.Pipelining.PipelinesPerStorageLocation":16,
         #"IG.GetLockConflictInfo":"true",      
         }
     

@@ -45,7 +45,7 @@ class threaded_runner(threading.Thread):
                 arguments.append("-ops")
                 arguments.append("V")
                 arguments.append("-no_map")
-            elif self.parent.operation.name == "edge_ingest":
+            elif (self.parent.operation.name == "edge_ingest") or (self.parent.operation.name == "pipeline_edge_ingest"):
                 dataset = self.parent.operation.GenerateDataset(self.parent.root_path,self.parent.template,self.parent.size,False)
                 arguments.append("-op_path")
                 arguments.append(dataset)
@@ -93,8 +93,8 @@ class benchmark_runner:
                  _page_size,_cache_size,_use_index,_threads,_tx_size,_tx_limit,
                  _tx_type,
                  _vertex=None,
-                 _dist="uniform",
-                 process=None
+                 _process=None,
+                 _dist="uniform"
                  ):
         self.working_path = _working_path
         self.root_path = _root_path
@@ -117,7 +117,7 @@ class benchmark_runner:
         self.profile = None
         self.vertex = _vertex
         self.dist = _dist
-        self.process = process
+        self.process = _process
         self.process_description = None
         self.number_processes = 1
         self.profile_sum = None
