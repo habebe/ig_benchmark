@@ -84,7 +84,7 @@ class threaded_runner(threading.Thread):
         else:
             remoteRequest = Service.Request(self.process)
             remoteRequest.init()
-            remoteRequest.request("bootstrap",
+            remoteRequest.request(self.parent.operation.name,
                                   [
                                       "--root",".",
                                       "--template",self.parent.template,
