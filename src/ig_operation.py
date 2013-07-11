@@ -80,7 +80,6 @@ class operation(operations.operation):
         if type(self.vertex) != types.ListType:
             self.vertex = [self.vertex]
             pass
-        #self.run_operation(ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit,process)
         return self._run_()
         
     
@@ -102,9 +101,17 @@ class operation(operations.operation):
             self.ig_version    = self.getOption("ig_version")
             self.process       = self.getOption("process")
             self.vertex        = self.getOption("vertex")
+            if type(self.new_graph) != types.ListType:
+                self.new_graph = [self.new_graph]
+                pass
+            if type(self.use_index) != types.ListType:
+                self.use_index = [self.use_index]
+                pass
+            if type(self.vertex) != types.ListType:
+                self.vertex = [self.vertex]
+                pass
             return self._run_()
-            #return self.run_operation(ig_version,rootPath,template,configNames,page_size,cache,useIndex,new_graph,size,threads,txsize,txlimit)
-        return False
+        return None
 
 
     def _run_(self):
@@ -173,7 +180,8 @@ class operation(operations.operation):
                 pass
             pass
         counter   = 1
-        totalSize = len(runners) 
+        totalSize = len(runners)
+        result = []
         for i in runners:
             i.message(counter,totalSize)
             if i.setup():
@@ -181,10 +189,11 @@ class operation(operations.operation):
                 if i.return_code == 0:
                     self.updateDatabase(i)
                     pass
+                result.append(i.profile)
                 pass
             counter += 1
             pass
-        return True
+        return result
 
     def __shouldPresistProfile__(self,profile_data):
         if self.optypes == None:

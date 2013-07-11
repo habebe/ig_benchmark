@@ -29,7 +29,10 @@ class threaded_runner(threading.Thread):
         profile_tag = "{0}.{1}".format(self.parent.profile_tag,self.getName())
         self.parent.operation.removeProfileData(self.parent.working_path,profile_tag)
         env = self.parent.operation.getEnv(self.parent.engine.version,self.parent.engine.home)
-        if self.process == None:
+        if self.process:
+            self.process = self.process.address
+            pass
+        if (self.process == None) or (Service.IsLocalAddress(self.process)):
             arguments = ["java","-Xmx5G","-jar",self.parent.jar,
                          "-property",self.parent.propertyFile.fileName,
                          "-threads",str(self.parent.threads),
@@ -79,8 +82,27 @@ class threaded_runner(threading.Thread):
             self.parent.operation.removeProfileData(self.parent.working_path,profile_tag)
             return True
         else:
-            print self.process
-            assert 0
+            remoteRequest = Service.Request(self.process)
+            remoteRequest.init()
+            remoteRequest.request("bootstrap",
+                                  [
+                                      "--root",".",
+                                      "--template",self.parent.template,
+                                      "--page_size",self.parent.page_size,
+                                      "--config",self.parent.config,
+                                      "--use_index",self.parent.use_index,
+                                      "--new",0,
+                                      "--graph_size",self.parent.graph_size,
+                                      "--size",self.parent.size,
+                                      "--threads",self.parent.threads,
+                                      "--txsize",self.parent.tx_size,
+                                      "--cache",self.parent.cache_size,
+                                      "--ig_version",self.parent.version
+                                      ]
+                                  )
+            remoteRequest.run()
+            self.profile = remoteRequest.response
+            return True
         return False
     pass
 
@@ -127,7 +149,11 @@ class benchmark_runner:
     def getProcessDescription(self):
         if self.process_description == None:
             return "local"
-        return self.process_description 
+        value = ""
+        for i in self.process_description:
+            value += "{0}:{1}".format(self.config,i)  
+            pass
+        return value
 
     def message(self,counter,size):
         print "\t[{0}/{1}] Run {2}".format(counter,size,self.operation.name)
@@ -293,8 +319,24 @@ class benchmark_runner:
         cwd = os.getcwd()
         os.chdir(self.working_path)
         for i in xrange(self.number_processes):
-            runner = threaded_runner(self,self.process_description)
-            runners.append(runner)
+            if self.process_description == None:
+                runner = threaded_runner(self,self.process_description)
+                runners.append(runner)
+                pass
+            else:
+                if type(self.process_description) == types.ListType:
+                    for proc_desc in self.process_description:
+                        if len(self.configObject.hosts) > proc_desc:
+                            #print "Using host : ",self.configObject.hosts[proc_desc]
+                            runner = threaded_runner(self,self.configObject.hosts[proc_desc])
+                            runners.append(runner)
+                        else:
+                            print "ERROR: Config file only contains {0} host requesting {1}".format(len(self.configObject.hosts),proc_desc)
+                            return False
+                        pass
+                    pass
+                else:
+                    pass
             pass
         for i in runners:
             i.start()
