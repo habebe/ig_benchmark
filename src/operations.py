@@ -117,8 +117,17 @@ class operation:
             os.mkdir(dataPath)
             pass
         dataPath = os.path.join(dataPath,"{0}.{1}.{2}".format(template,size,vertexOnly))
-        if not os.path.exists(dataPath):
-            os.mkdir(dataPath)
+        generate = (os.path.exists(dataPath) == False)
+        if not generate:
+            if len(os.listdir(dataPath)) == 0:
+                print "Warning bad data path"
+                generate = True
+                pass
+            pass
+        if generate:
+            if not os.path.exists(dataPath):
+                os.mkdir(dataPath)
+                pass
             print "\t\tGenerating dataset template:{0} size:{1} path:{2}".format(template,size,dataPath),
             sys.stdout.flush()
             import dataset_operation
