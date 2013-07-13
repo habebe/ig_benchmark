@@ -12,6 +12,7 @@ import config
 import build_operation
 import ig_property
 import tempfile
+import Service
 
 class operation(operations.operation):
     "Bootstrap the Graph database given a template and a configuration file."
