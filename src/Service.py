@@ -197,6 +197,10 @@ class Request(threading.Thread):
         if self.requestOptions and self.socket:
             print "\t\t\tRemote Request Sending"
             print "\t\t\t",self.requestOptions
+            command = "ig.benchmark.py service --host {0} --request {1}".format(self.host,requestOptions["data"]["name"])
+            for i in requestOptions["data"]["args"]:
+                command = "{0} --arg {1}".format(command,i)
+                pass
             self.socket.send(str(self.requestOptions))
             self.response = self.socket.recv(1024)
             return eval(self.response)
