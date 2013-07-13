@@ -68,6 +68,12 @@ class operation(operations.operation):
 
     def addStorage(self,engine,storage,counter,bootFile):
         env = self.getEnv(engine.version,engine.home)
+        if not Service.IsLocalAddress(storage[1]):
+            request = Service.Request(storage[1])
+            request.init()
+            request.request("mkdir",["--path",storage[2]])
+            request.run()
+            pass
         arguments = [os.path.join(engine.home,"bin","objy"),
                      "AddStorageLocation",
                      "-name","location.{0}".format(counter),

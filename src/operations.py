@@ -159,6 +159,45 @@ class operation:
         self.GenerateDataset_Semaphore.release()
         return dataPath
 
+    GenerateNav_Semaphore = threading.Semaphore()
+    @classmethod
+    def GenerateNavigation(self,rootPath,template,size,graph_size,vertex,dist="uniform"):
+        self.GenerateNav_Semaphore.acquire()
+        dataPath = os.path.join(rootPath,"working","_dataset_")
+        if not os.path.exists(dataPath):
+            os.mkdir(dataPath)
+            pass
+        sourcePath = os.path.join(dataPath,"{0}.{1}.{2}".format(template,graph_size,True))
+        if not os.path.exists(sourcePath):
+            sourcePath = os.path.join(dataPath,"{0}.{1}.{2}".format(template,graph_size,False))
+            pass
+        if not os.path.exists(sourcePath):
+            self.error("Unable to find source path '{0}' when generating queries.".format(sourcePath))
+            self.GenerateNav_Semaphore.release()
+            return None
+        dataPath = os.path.join(dataPath,"query.{0}.{1}.{2}.{3}".format(template,vertex,graph_size,size))
+        if not os.path.exists(dataPath):
+            print "\t\tGenerating template template:{0} size:{1} path:{2}".format(template,size,dataPath),
+            sys.stdout.flush()
+            import generate_query_operation
+            dataset = generate_query_operation.operation()
+            dataset.parse([
+                "--root","{0}".format(rootPath),
+                "--template",template,
+                "--size",size,
+                "--source",sourcePath,
+                "--target",dataPath,
+                "--vertex",vertex,
+                "--dist",dist
+                ])
+            dataset.operate()
+            print "[complete]"
+        else:
+            print "\t\tReusing previously generated query template:{0} size:{1} path:{2}".format(template,size,dataPath)
+            pass
+        self.GenerateNav_Semaphore.release()
+        return dataPath
+
     GenerateQuery_Semaphore = threading.Semaphore()
     @classmethod
     def GenerateQuery(self,rootPath,template,size,graph_size,vertex,dist="uniform"):
@@ -579,6 +618,7 @@ import report_operation
 import generate_query_operation
 import merge_operation
 import service_operation
+import mkdir_operation
     
 def add_operation(operation):
     operations[operation.name] = operation
@@ -599,6 +639,7 @@ def populate():
         add_operation(report_operation.operation())
         add_operation(merge_operation.operation())
         add_operation(service_operation.operation())
+        add_operation(mkdir_operation.operation())
         pass
     pass
 
