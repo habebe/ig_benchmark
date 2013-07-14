@@ -44,6 +44,7 @@ class operation(operations.operation):
             pass
         stdout = sys.stdout
         stderr = sys.stderr
+        
         if self.verbose == 0:
             stdout = tempfile.NamedTemporaryFile()
             stderr = stdout

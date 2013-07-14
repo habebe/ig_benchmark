@@ -9,12 +9,14 @@ import bootstrap_operation
 import build_operation
 import Service
 import types
+import string
 
 class threaded_runner(threading.Thread):
-    def __init__(self,parent,process):
+    def __init__(self,parent,process,numberOfProcesses):
         threading.Thread.__init__(self)
         self.parent = parent
         self.process = process
+        self.numberOfProcesses = numberOfProcesses
         self.events = None
         self.profile = None
         self.return_code = 1
@@ -87,21 +89,29 @@ class threaded_runner(threading.Thread):
             remoteRequest.request(self.parent.operation.name,
                                   [
                                       "--root",".",
-                                      "--template",self.parent.template,
-                                      "--page_size",self.parent.page_size,
-                                      "--config",self.parent.config,
-                                      "--use_index",self.parent.use_index,
-                                      "--new",0,
-                                      "--graph_size",self.parent.graph_size,
-                                      "--size",self.parent.size,
-                                      "--threads",self.parent.threads,
-                                      "--txsize",self.parent.tx_size,
-                                      "--cache",self.parent.cache_size,
-                                      "--ig_version",self.parent.version
+                                      "--template",str(self.parent.template),
+                                      "--page_size",str(self.parent.page_size),
+                                      "--config",str(self.parent.config),
+                                      "--use_index",str(self.parent.use_index),
+                                      "--new",str(0),
+                                      "--graph_size",str(self.parent.graph_size),
+                                      "--size",str(self.parent.size),
+                                      "--threads",str(self.parent.threads),
+                                      "--txsize",str(self.parent.tx_size),
+                                      "--cache",str(self.parent.cache_size),
+                                      "--ig_version",str(self.parent.version),
+                                      "--process",str((None,self.numberOfProcesses))
                                       ]
                                   )
             remoteRequest.run()
-            self.profile = remoteRequest.response
+            response = eval(remoteRequest.response)
+            if type(response) == types.ListType:
+                self.return_code = 0
+                for i in response:
+                    self.parent.add_profile(i)
+                    pass
+                self.parent.average_profile()
+                pass
             return True
         return False
     pass
@@ -150,8 +160,12 @@ class benchmark_runner:
         if self.process_description == None:
             return "local"
         value = ""
+        counter = len(self.process_description)
         for i in self.process_description:
-            value += "{0}:{1}".format(self.config,i)  
+            value += "{0}:{1}".format(self.config,i)
+            if counter > 1:
+                value += ","
+            counter = counter - 1
             pass
         return value
 
@@ -195,6 +209,7 @@ class benchmark_runner:
                 if not self.use_index:
                     arguments.append("--no_index")
                     pass
+                print "ig.benchmark.py bootstrap {0}".format(arguments)
                 bootstrap.parse(arguments)
                 if not bootstrap.operate():
                     self.operation.error("--Failed to bootstrap database.")
@@ -318,25 +333,25 @@ class benchmark_runner:
         runners = []
         cwd = os.getcwd()
         os.chdir(self.working_path)
-        for i in xrange(self.number_processes):
-            if self.process_description == None:
-                runner = threaded_runner(self,self.process_description)
+        if (self.process_description == None) or (Service.IsLocalAddress(self.process_description)):
+            for i in xrange(self.number_processes):        
+                runner = threaded_runner(self,self.process_description,1)
                 runners.append(runner)
                 pass
+            pass
+        else:
+            if type(self.process_description) == types.ListType:
+                for proc_desc in self.process_description:
+                    if len(self.configObject.hosts) > proc_desc:
+                        runner = threaded_runner(self,self.configObject.hosts[proc_desc],self.number_processes)
+                        runners.append(runner)
+                    else:
+                        print "ERROR: Config file only contains {0} host requesting {1}".format(len(self.configObject.hosts),proc_desc)
+                        return False
+                    pass
+                pass
             else:
-                if type(self.process_description) == types.ListType:
-                    for proc_desc in self.process_description:
-                        if len(self.configObject.hosts) > proc_desc:
-                            #print "Using host : ",self.configObject.hosts[proc_desc]
-                            runner = threaded_runner(self,self.configObject.hosts[proc_desc])
-                            runners.append(runner)
-                        else:
-                            print "ERROR: Config file only contains {0} host requesting {1}".format(len(self.configObject.hosts),proc_desc)
-                            return False
-                        pass
-                    pass
-                else:
-                    pass
+                pass
             pass
         for i in runners:
             i.start()
