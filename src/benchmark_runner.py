@@ -333,24 +333,30 @@ class benchmark_runner:
         runners = []
         cwd = os.getcwd()
         os.chdir(self.working_path)
-        if (self.process_description == None) or (Service.IsLocalAddress(self.process_description)):
-            for i in xrange(self.number_processes):        
+        if (self.process_description == None):
+            for i in xrange(self.number_processes):
                 runner = threaded_runner(self,self.process_description,1)
                 runners.append(runner)
                 pass
             pass
         else:
-            if type(self.process_description) == types.ListType:
-                for proc_desc in self.process_description:
-                    if len(self.configObject.hosts) > proc_desc:
+            for proc_desc in self.process_description:
+                if len(self.configObject.hosts) > proc_desc:
+                    hostname = self.configObject.hosts[proc_desc].address
+                    if Service.IsLocalAddress(hostname):
+                        for i in xrange(self.number_processes):
+                            runner = threaded_runner(self,self.configObject.hosts[proc_desc],1)
+                            runners.append(runner)
+                            pass
+                        pass
+                    else:
                         runner = threaded_runner(self,self.configObject.hosts[proc_desc],self.number_processes)
                         runners.append(runner)
-                    else:
-                        print "ERROR: Config file only contains {0} host requesting {1}".format(len(self.configObject.hosts),proc_desc)
-                        return False
+                        pass
                     pass
-                pass
-            else:
+                else:
+                    print "ERROR: Config file only contains {0} host requesting {1}".format(len(self.configObject.hosts),proc_desc)
+                    return False
                 pass
             pass
         for i in runners:
