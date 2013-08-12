@@ -19,13 +19,14 @@ class operation(operations.operation):
     def __init__(self):
         operations.operation.__init__(self,"bootstrap",False)
         self.add_argument("help",None,None,"show help message")
-        self.add_argument("root","str",None,"Root path.")
+        self.add_argument("root","str",".","Root path.")
         self.add_argument("config","str",None,"specify the config file name and the name of the config using the format config_file_name:config_name.")
         self.add_argument("project","str",None,"name of the project.")
         self.add_argument("page_size","str",None,"page size to use.")
         self.add_argument("no_index",None,None,"Do not create index.")
         self.add_argument("containers","int","0","Create containers with this size.")
         self.add_argument("ig_version","str",None,"InfiniteGraph version.")
+        self.add_argument("has_tasks",None,None,"InfiniteGraph version has tasks.")
         self.add_argument("verbose","int","0","Verbose level.")
         pass
 
@@ -151,13 +152,14 @@ class operation(operations.operation):
             project = self.getSingleOption("project")
             containers = self.getSingleOption("containers")
             self.verbose = self.getSingleOption("verbose")
-
+            has_tasks = self.getSingleOption("has_tasks")
             if project == None:
                 self.error("Project is not given.")
                 return False
             if ig_version == None:
                 self.error("InfiniteGraph version is not given.")
                 return False
+            
             rootPath = os.path.abspath(rootPath)
             working_path = self.setupWorkingPath(rootPath,ig_version)
             project_path = os.path.join(working_path,project)
@@ -183,9 +185,18 @@ class operation(operations.operation):
                     self.warn("Project path '{0}' does not exist. Trying to build project.".format(project))
                     pass
                 build = build_operation.operation()
-                build.parse(["--root","{0}".format(rootPath),
-                             "--ig_home","{0}".format(engine.home),
-                             "--ig_version","{0}".format(engine.version)])
+                if has_tasks:
+                    build.parse(["--root","{0}".format(rootPath),
+                                 "--ig_home","{0}".format(engine.home),
+                                 "--ig_version","{0}".format(engine.version),
+                                 "--has_tasks"
+                                 ],
+                                )
+                else:
+                    build.parse(["--root","{0}".format(rootPath),
+                                 "--ig_home","{0}".format(engine.home),
+                                 "--ig_version","{0}".format(engine.version)])
+                    pass
                 build.operate()
                 if not os.path.exists(project_path):
                     self.error("Project path '{0}' does not exist after an attempted build.".format(project))
@@ -197,6 +208,7 @@ class operation(operations.operation):
                 print "template:{0} version:{1}".format(project,ig_version),
                 print "pre-allocate-container:{0}".format(containers),
                 print "use_index:{0} page_size:{1}".format(not self.hasOption("no_index"),page_size),
+                print "has_tasks:{0}".format(has_tasks)
                 sys.stdout.flush()
                 pass
             if self.verbose > 0:
@@ -276,6 +288,5 @@ class operation(operations.operation):
                 sys.stdout.flush()
                 pass
             return True
-        self.error("Unknown error during bootstrap.")
-        return False
+        return True
     pass

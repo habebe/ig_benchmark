@@ -159,6 +159,52 @@ class operation:
         self.GenerateDataset_Semaphore.release()
         return dataPath
 
+
+    GenerateCompositeDataset_Semaphore = threading.Semaphore()
+    @classmethod
+    def GenerateCompositeDataset(self,rootPath,template,name,size):
+        self.GenerateCompositeDataset_Semaphore.acquire()
+        dataPath = os.path.join(rootPath,"working","_dataset_")
+        if not os.path.exists(dataPath):
+            os.mkdir(dataPath)
+            pass
+        dataPath = os.path.join(dataPath,"{0}.{1}.{2}".format(template,name,size))
+        generate = (os.path.exists(dataPath) == False)
+        if not generate:
+            if len(os.listdir(dataPath)) == 0:
+                print "Warning bad data path"
+                generate = True
+                pass
+            pass
+        target = os.path.join(dataPath,"{}.data".format(name))
+        if not os.path.exists(target):
+            generate = generate or (os.path.exists(target) == False)
+            pass
+        if generate:
+            if not os.path.exists(dataPath):
+                os.mkdir(dataPath)
+                pass
+            print "\t\tGenerating composite dataset template:{0} size:{1} target:{2}".format(template,size,target),
+            sys.stdout.flush()
+            import dataset_operation
+            dataset = dataset_operation.operation()
+            sourcePath = os.path.join(rootPath,"data_source")
+            dataset.parse([
+                "--root","{0}".format(rootPath),
+                "--template",template,
+                "--size",size,
+                "--source",sourcePath,
+                "--target",dataPath,
+                "--composite_data",name
+                ])
+            dataset.operate()
+            print "[complete]"
+        else:
+            print "\t\tReusing previously generated dataset template:{0} size:{1} path:{2}".format(template,size,dataPath)
+            pass
+        self.GenerateCompositeDataset_Semaphore.release()
+        return target
+
     GenerateNav_Semaphore = threading.Semaphore()
     @classmethod
     def GenerateNavigation(self,rootPath,template,size,graph_size,vertex,dist="uniform"):
@@ -259,7 +305,7 @@ class operation:
         env = os.environ.copy()
         platform_name = platform.system().lower()
         if platform_name.find("darwin") >= 0:
-            env["IG_HOME"] = os.path.join(ig_home,"mac86_64")
+            env["IG_HOME"] = ig_home
             if env.has_key("DYLD_LIBRARY_PATH"):
                 env["DYLD_LIBRARY_PATH"] = "{0}:{1}".format(os.path.join(env["IG_HOME"],"lib"),env["DYLD_LIBRARY_PATH"])
             else:
@@ -272,7 +318,7 @@ class operation:
                 pass
             pass
         elif platform_name.find("linux") >= 0:
-            env["IG_HOME"] = os.path.join(ig_home,"linux86_64")
+            env["IG_HOME"] = ig_home
             if env.has_key("LD_LIBRARY_PATH"):
                 env["LD_LIBRARY_PATH"] = "{0}:{1}".format(os.path.join(env["IG_HOME"],"lib"),env["LD_LIBRARY_PATH"])
             else:
@@ -613,12 +659,16 @@ import dataset_operation
 import vertex_ingest_operation
 import edge_ingest_operation
 import pipeline_edge_ingest_operation
+import composite_ingest_operation
+import pipeline_composite_ingest_operation
 import query_operation
 import report_operation
 import generate_query_operation
 import merge_operation
 import service_operation
 import mkdir_operation
+import start_agents
+
     
 def add_operation(operation):
     operations[operation.name] = operation
@@ -640,6 +690,9 @@ def populate():
         add_operation(merge_operation.operation())
         add_operation(service_operation.operation())
         add_operation(mkdir_operation.operation())
+        add_operation(start_agents.operation())
+        add_operation(composite_ingest_operation.operation())
+        add_operation(pipeline_composite_ingest_operation.operation())
         pass
     pass
 

@@ -121,7 +121,11 @@ class AgentHandler(threading.Thread):
         self.shouldTerminte = False
         stdoutFile = file(self.stdoutName,"w")
         stderrFile = file(self.stderrName,"w")
-        self.process = subprocess.Popen(self.arguments,stdout=stderrFile,stderr=stdoutFile)
+        if self.manager.env:
+            self.process = subprocess.Popen(self.arguments,stdout=stderrFile,stderr=stdoutFile,env=self.manager.env)
+        else:
+            self.process = subprocess.Popen(self.arguments,stdout=stderrFile,stderr=stdoutFile)
+            pass
         self.manager.output_message("Started agent pid:{0} log:{1}".format(self.process.pid,self.stdoutName))
         pass
 
@@ -228,8 +232,10 @@ class AgentTerminateCondition:
     pass
 
 class AgentManager(threading.Thread):
-    def __init__(self,name,IG_HOME,bootFile,propertyFile,numberOfAgents,pollTime,logParserType,terminateCondition,
-                 userTaskDirectory,loggingProperties):
+    def __init__(self,name,IG_HOME,bootFile,propertyFile,numberOfAgents,
+                 pollTime,logParserType,terminateCondition,
+                 userTaskDirectory,loggingProperties,
+                 env):
         threading.Thread.__init__(self)
         self.name = "{0}.{1}".format(name,int(time.time()*1000))
         self.IG_HOME = IG_HOME
@@ -244,6 +250,7 @@ class AgentManager(threading.Thread):
         self.agents = []
         self.numberOfTotalProcessed = 0
         self.shouldTerminate = False
+        self.env = env
         self.messageList = []
         pass
 
@@ -311,6 +318,18 @@ class AgentManager(threading.Thread):
                 self.numberOfTotalProcessed += int(agent.logParser.processCounter)
                 pass
             done = self.terminateConditionReached(self.numberOfTotalProcessed)
+            if not done:
+                dead = 0
+                for i in self.agents:
+                    if (i.process == None):
+                        dead += 1
+                        pass
+                    pass
+                done = (dead == len(self.agents))
+                if done:
+                    self.output_message("All agents process are dead.")
+                    pass
+                pass
             pass
         self.terminateAgents()
         self.print_messages()
@@ -324,29 +343,31 @@ class AgentManager(threading.Thread):
         return
     pass
 
-manager = AgentManager('CompositeIngest',
-                       '/Applications/InfiniteGraph/3.1.task/',
-                       './data/whois.boot',
-                       'propertyFile',
-                       2,
-                       2.0,
-                       UpsertAgentLogParser,
-                       AgentTerminateCondition(30,5000),
-                       "./pipeline/",
-                       "./properties/logging.properties",
-                       )
-manager.start()
-manager.join()
-totalTime = 0
-totalItems = 0
-for i in manager.agents:
-    counter  = i.logParser.processCounter
-    if counter:
-        timeDiff = i.logParser.preProcessTimeStamp[1] - i.logParser.preProcessTimeStamp[0]
-        totalTime += timeDiff
-        totalItems += counter
-        print i.agentName,"time :",timeDiff," Rate:",(counter*1.0/timeDiff)," Counter:",counter
-        pass
-    pass
-print "Total time:",totalTime," counter:",totalItems
 
+if 0:
+    manager = AgentManager('CompositeIngest',
+                           '/Applications/InfiniteGraph/3.1.task/',
+                           '127.0.0.1::/Users/henocka/cisco/WORK_AREA/whois_new/data/whois.boot',
+                           'propertyFile',
+                           2,
+                           2.0,
+                           UpsertAgentLogParser,
+                           AgentTerminateCondition(30,5000),
+                           "./pipeline/",
+                           "./properties/logging.properties",
+                           )
+    manager.start()
+    manager.join()
+    totalTime = 0
+    totalItems = 0
+    for i in manager.agents:
+        counter  = i.logParser.processCounter
+        if counter:
+            timeDiff = i.logParser.preProcessTimeStamp[1] - i.logParser.preProcessTimeStamp[0]
+            totalTime += timeDiff
+            totalItems += counter
+            print i.agentName,"time :",timeDiff," Rate:",(counter*1.0/timeDiff)," Counter:",counter
+            pass
+        pass
+    print "Total time:",totalTime," counter:",totalItems
+    

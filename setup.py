@@ -33,7 +33,7 @@ setup(name='ig_benchmark',
       url='http://www.objectivity.com',
       packages=['ig_benchmark'],
       package_dir={'ig_benchmark': 'src'},
-      package_data={'ig_benchmark':get_file_list("src","web_template") + get_file_list("src","basic_suite")},
+      package_data={'ig_benchmark':get_file_list("src","web_template") + get_file_list("src","basic_suite") + ["properties/*"]},
       scripts=['src/ig.benchmark.py'],
       )
 

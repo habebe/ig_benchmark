@@ -90,7 +90,7 @@ class operation(operations.operation):
             self.configNames   = self.getOption("config")
             self.page_size     = self.getOption("page_size")
             self.cache         = self.getOption("cache")
-            self.use_index      = self.getOption("use_index")
+            self.use_index     = self.getOption("use_index")
             self.new_graph     = self.getOption("new")
             self.size          = self.getOption("size")
             self.graph_size    = self.getOption("graph_size")

@@ -15,7 +15,24 @@ class __Defaults__:
         "IG.PageSize":16384,
         "IG.Placement.Distributed.Pipelining.EnablePipelining":"true",
         "IG.Placement.Distributed.Pipelining.PipelinesPerStorageLocation":16,
-        #"IG.GetLockConflictInfo":"true",      
+        #"IG.GetLockConflictInfo":"true",
+
+        "IG.Pipelining.Groups":"ConnectorGroup,VertexGroup,EdgeGroup",
+        "IG.Pipelining.ConnectorGroup.TargetClass":"infinitegraph.impl.ObjectivityConnector",
+        "IG.Pipelining.ConnectorGroup.EnablePipelining":"true",
+        "IG.Pipelining.ConnectorGroup.PipelinesPerStorageLocation":"2",
+        "IG.Pipelining.ConnectorGroup.PipelineSizeRange":"1000:10000",
+        "IG.Pipelining.ConnectorGroup.MaxTimeInPipeline":"1000",
+        "IG.Pipelining.VertexGroup.TargetClass":"infinitegraph.impl.ObjectivityVertex",
+        "IG.Pipelining.VertexGroup.EnablePipelining":"true",
+        "IG.Pipelining.VertexGroup.PipelinesPerStorageLocation":"2",
+        "IG.Pipelining.VertexGroup.PipelineSizeRange":"1000:10000",
+        "IG.Pipelining.VertexGroup.MaxTimeInPipeline":"1000",
+        "IG.Pipelining.EdgeGroup.TargetClass":"infinitegraph.impl.ObjectivityEdge",
+        "IG.Pipelining.EdgeGroup.EnablePipelining":"true",
+        "IG.Pipelining.EdgeGroup.PipelinesPerStorageLocation":"2",
+        "IG.Pipelining.EdgeGroup.PipelineSizeRange":"1000:10000",
+        "IG.Pipelining.EdgeGroup.MaxTimeInPipeline":"1000",
         }
     
 class PropertyFile:

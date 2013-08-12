@@ -56,8 +56,15 @@ class threaded_runner(threading.Thread):
                 arguments.append(dataset)
                 arguments.append("-ops")
                 arguments.append("V,E")
+            elif (self.parent.operation.name == "composite_ingest") or (self.parent.operation.name == "pipeline_composite_ingest"):
+                dataset = self.parent.operation.GenerateCompositeDataset(self.parent.root_path,self.parent.template,
+                                                                         self.parent.operation.composite_name,self.parent.size)
+                arguments.append("-op_file")
+                arguments.append(dataset)
             elif self.parent.operation.name == "query":
-                dataset = self.parent.operation.GenerateQuery(self.parent.root_path,self.parent.template,self.parent.size,self.parent.graph_size,self.parent.vertex,self.parent.dist)
+                dataset = self.parent.operation.GenerateQuery(self.parent.root_path,self.parent.template,
+                                                              self.parent.size,self.parent.graph_size,
+                                                              self.parent.vertex,self.parent.dist)
                 if dataset == None:
                     return
                 arguments.append("-op_file")
@@ -209,6 +216,9 @@ class benchmark_runner:
                 if not self.use_index:
                     arguments.append("--no_index")
                     pass
+                if (self.operation.name == "pipeline_composite_ingest"):
+                    arguments.append("--has_tasks")
+                    pass
                 print "ig.benchmark.py bootstrap {0}".format(arguments)
                 bootstrap.parse(arguments)
                 if not bootstrap.operate():
@@ -236,10 +246,16 @@ class benchmark_runner:
         project_path = os.path.join(self.working_path,self.template)
         if not os.path.exists(project_path):
             self.operation.warn("Project path '{0}' does not exist. Trying to build project.".format(self.template))
+            assert(0)
             build = build_operation.operation()
-            build.parse(["--root","{0}".format(self.root_path),
-                         "--ig_home","{0}".format(self.engine.home),
-                         "--ig_version","{0}".format(self.engine.version)])
+            args = []
+            if (self.parent.operation.name == "pipeline_composite_ingest"):
+                args.append("--has_tasks")
+                pass
+            ars = args + ["--root","{0}".format(self.root_path),
+                          "--ig_home","{0}".format(self.engine.home),
+                          "--ig_version","{0}".format(self.engine.version)]
+            build.parse(args)
             build.operate()
             if not os.path.exists(project_path):
                 self.operation.error("Project path '{0}' does not exist after an attempted build.".format(self.template))

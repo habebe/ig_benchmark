@@ -19,6 +19,7 @@ class operation(operations.operation):
         self.add_argument("verbose","int",0,"verbose level.")
         self.add_argument("ig_version","str",None,"InfiniteGraph version.")
         self.add_argument("ig_home","str",None,"InfiniteGraph installation path.")
+        self.add_argument("has_tasks",None,None,"InfiniteGraph version has tasks.")
         self.add_argument("verbose","int","0","Verbose level.")
         self.builds = []
         pass
@@ -30,15 +31,18 @@ class operation(operations.operation):
         exe = "ant"
         arguments = [exe] + options
         env = os.environ.copy()
-        if platform.system().lower().find("darwin") >= 0:
-            env["IG_HOME"] = os.path.join(self.ig_home,"mac86_64")
-            pass
-        elif platform.system().lower().find("linux") >= 0:
-            env["IG_HOME"] = os.path.join(self.ig_home,"linux86_64")
+        env["IG_HOME"] = self.ig_home
+        if 0:
+            if platform.system().lower().find("darwin") >= 0:
+                env["IG_HOME"] = os.path.join(self.ig_home,"mac86_64")
+                pass
+            elif platform.system().lower().find("linux") >= 0:
+                env["IG_HOME"] = os.path.join(self.ig_home,"linux86_64")
+                pass
             pass
         if self.verbose == 0:
             if showIG_HOME:
-                print "IG_HOME:{0}".format(env["IG_HOME"]),
+                print "IG_HOME:{0} path:{1}".format(env["IG_HOME"],path),self.has_tasks
                 sys.stdout.flush()
                 pass
             pass
@@ -63,12 +67,14 @@ class operation(operations.operation):
         return status
 
 
-    def __build__(self,path,project,template):
+    def __build__(self,path,project,template,has_tasks):
         parser = ig_template.Schema.Parser(template,path)
         parser.setVerboseLevel(self.verbose)
         parser.setProjectPath(path)
         parser.setProject(project)
+        parser.setHasTasks(has_tasks)
         parser.parse()
+
         self.__run__(path,["clean"],True)
         self.__run__(path,["all"])
         return True
@@ -79,8 +85,9 @@ class operation(operations.operation):
             self.ig_version = self.getSingleOption("ig_version")
             self.ig_home  = self.getSingleOption("ig_home")
             self.verbose = self.getSingleOption("verbose")
+            self.has_tasks = self.hasOption("has_tasks")
             if self.verbose == 0:
-                print "\t\tBuilding Templates",
+                print "\t\tBuilding Templates"
                 sys.stdout.flush()
                 pass
             
@@ -95,14 +102,13 @@ class operation(operations.operation):
             if self.ig_home == None:
                 self.error("InfiniteGraph installation path is not given.")
                 return False
-           
             
             self.root = os.path.abspath(self.root)
             template_path = os.path.join(self.root,"templates")
             working_path  = os.path.join(self.root,"working",self.ig_version)
 
             if self.verbose == 0:
-                print "path:{0}".format(working_path),
+                print "working path:{0}".format(working_path)
                 sys.stdout.flush()
                 pass
             
@@ -121,7 +127,7 @@ class operation(operations.operation):
                 pass
 
             for i in self.templates:
-                if not self.__build__(i[2],i[1],i[0]):
+                if not self.__build__(i[2],i[1],i[0],self.has_tasks):
                     return False
                 pass
             if self.verbose == 0:
