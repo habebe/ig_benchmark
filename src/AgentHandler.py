@@ -344,7 +344,7 @@ class AgentManager(threading.Thread):
     pass
 
 
-if 0:
+if 1:
     manager = AgentManager('CompositeIngest',
                            '/Applications/InfiniteGraph/3.1.task/',
                            '127.0.0.1::/Users/henocka/cisco/WORK_AREA/whois_new/data/whois.boot',
@@ -352,9 +352,10 @@ if 0:
                            2,
                            2.0,
                            UpsertAgentLogParser,
-                           AgentTerminateCondition(30,5000),
+                           AgentTerminateCondition(10,10),
                            "./pipeline/",
                            "./properties/logging.properties",
+                           None
                            )
     manager.start()
     manager.join()
