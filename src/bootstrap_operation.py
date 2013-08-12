@@ -27,6 +27,8 @@ class operation(operations.operation):
         self.add_argument("containers","int","0","Create containers with this size.")
         self.add_argument("ig_version","str",None,"InfiniteGraph version.")
         self.add_argument("has_tasks",None,None,"InfiniteGraph version has tasks.")
+        self.add_argument("pipeline_per_storage","int","4","Pipeline per storage location.")
+        self.add_argument("pipeline_size","str","1000:100000","Pipeline size range.")
         self.add_argument("verbose","int","0","Verbose level.")
         pass
 
@@ -153,6 +155,10 @@ class operation(operations.operation):
             containers = self.getSingleOption("containers")
             self.verbose = self.getSingleOption("verbose")
             has_tasks = self.getSingleOption("has_tasks")
+
+            pipeline_per_storage = self.getSingleOption("pipeline_per_storage")
+            pipeline_size = self.getSingleOption("pipeline_size")
+            
             if project == None:
                 self.error("Project is not given.")
                 return False
@@ -249,7 +255,11 @@ class operation(operations.operation):
             propertyFile.setBootPath(bootPath)
             propertyFile.properties["IG.MasterDatabaseHost"] = masterHost
             propertyFile.properties["IG.MasterPath"] = masterPath
-            
+
+            for item in ("ConnectorGroup","VertexGroup","EdgeGroup"):
+                propertyFile.properties["IG.Pipelining.{0}.PipelinesPerStorageLocation"] = str(pipeline_per_storage)
+                propertyFile.properties["IG.Pipelining.{0}.PipelinesPerSizeRange"] = str(pipeline_size)
+                pass
             if page_size:
                 propertyFile.setPageSize(pow(2,int(page_size)))
                 pass
