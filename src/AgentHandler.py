@@ -344,7 +344,7 @@ class AgentManager(threading.Thread):
     pass
 
 
-if 1:
+if 0:
     manager = AgentManager('CompositeIngest',
                            '/Applications/InfiniteGraph/3.1.task/',
                            '127.0.0.1::/Users/henocka/cisco/WORK_AREA/whois_new/data/whois.boot',

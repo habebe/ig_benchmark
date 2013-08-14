@@ -59,6 +59,8 @@ class threaded_runner(threading.Thread):
             elif (self.parent.operation.name == "composite_ingest") or (self.parent.operation.name == "pipeline_composite_ingest"):
                 dataset = self.parent.operation.GenerateCompositeDataset(self.parent.root_path,self.parent.template,
                                                                          self.parent.operation.composite_name,self.parent.size)
+                arguments.append("-verbose")
+                arguments.append("2")
                 arguments.append("-op_file")
                 arguments.append(dataset)
             elif self.parent.operation.name == "query":
@@ -272,6 +274,7 @@ class benchmark_runner:
         return True
 
     def add_profile(self,profile):
+        print "Add profile",profile
         if profile:
             for i in profile:
                 print "\t\t\tProcess profile:",i["data"]

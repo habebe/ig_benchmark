@@ -23,7 +23,14 @@ class operation(ig_operation.operation):
         self.add_argument("composite_name","str",None,"Name of the composite element in the template.")
         pass
 
-    def operate(self):
+    def run(self,db,suite,case,data,**kwargs):
+        self.composite_name = self.getOption_data(data,"composite_name")
+        if self.composite_name == None:
+            self.error("Composite name is not given.")
+            return False
+        return ig_operation.operation.run(self,db,suite,case,data,**kwargs)
+
+    def operate(self):        
         if not self.hasOption("help"):
             self.composite_name = self.getSingleOption("composite_name")
             if not self.composite_name:

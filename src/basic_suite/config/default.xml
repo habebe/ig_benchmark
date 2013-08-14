@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConfigList>
-  <Config name="default">
-    <Lockserver address="127.0.0.1"/>
-    <Host address="127.0.0.1">
-      <Disk location="./data"/>
-    </Host>
-  </Config>
+
+        <EngineList>
+                <Engine version="ig.3.0" home="/Applications/InfiniteGraph/3.0" model="InfiniteGraph"/>
+                <Engine version="ig.3.1" home="/Applications/InfiniteGraph/3.1" model="IG"/>
+                <Engine version="ig.3.1.task" home="/Applications/InfiniteGraph/3.1.task" model="IG"/>
+        </EngineList>
+
+        <Config name="default">
+        <Lockserver address="127.0.0.1"/>
+        <Host address="127.0.0.1">
+                <Disk location="/Users/henocka/cisco/ig_baseline_tests/working/data"/>
+        </Host>
+        </Config>
+
+        <Config name="default2">
+        <Lockserver address="127.0.0.1"/>
+        <Host address="127.0.0.1">
+                <Disk location="/Users/henocka/cisco/ig_baseline_tests/working/data"/>
+        </Host>
+        </Config>
+        
 </ConfigList>

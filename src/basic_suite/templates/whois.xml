@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Template namespace="com.whois">
+  <Definitions>
+     <Vertex name="Domain">
+    	<Fields>
+    		
+    		<String name="name"/>
+    	</Fields>
+    	<Data scale="1">
+        	<Object>
+        	<![CDATA[
+        		data.name = "domain.{0}.com".format(Integer.uniform(1,2000))
+          		]]>
+         	</Object>
+      	</Data>
+
+    </Vertex>
+   
+    <Vertex name="Country">
+    	<Fields>
+    		<String name="name"/>
+    	</Fields>
+    	<Data scale="1">
+        	<Object>
+        	<![CDATA[
+        		data.name = "country.{0}".format(Integer.uniform(1,20))
+          		]]>
+         	</Object>
+      	</Data>
+    </Vertex>
+
+ 	<Vertex name="Registrar">
+    	<Fields>
+    		<String name="name"/>
+    	</Fields>
+    	<Data scale="1">
+        	<Object>
+        	<![CDATA[
+        		data.name = "registrar.{0}".format(Integer.uniform(1,100))
+          		]]>
+         	</Object>
+      	</Data>
+    </Vertex>
+	
+	<Vertex name="Email">
+		<Fields>
+    		<String name="name"/>
+    	</Fields>
+    	<Data scale="1">
+        	<Object>
+        	<![CDATA[
+        		data.name = "name_{0}@domain.come".format(Integer.uniform(1,2000))
+          		]]>
+         	</Object>
+      	</Data>
+
+	</Vertex>
+	
+    <Vertex name="NameServer">
+    	<Fields>
+    		<String name="name"/>
+    	</Fields>
+    	<Data scale="1">
+        	<Object>
+        	<![CDATA[
+        		data.name = "name_server.{0}".format(Integer.uniform(1,10000))
+          		]]>
+         	</Object>
+      	</Data>
+    </Vertex>
+
+	 <Edge name="OwnerCountry"/>
+	 <Edge name="OwnerRegistrar"/>
+     <Edge name="NameServerEdge"/>
+   	 <Edge name="OwnerEmail"/>
+   
+	<CompositeData name="BaseModel">
+		<Vertex name="Domain" scale="1" unique="true">
+			<Edge type="0" name="OwnerCountry" unique="true">
+				<Vertex name="Country" unique="true"/>
+			</Edge>
+			<Edge type="0" name="OwnerRegistrar" unique="true">
+				<Vertex name="Registrar" unique="true"/>
+			</Edge>
+			<Edge type="0" name="OwnerEmail" unique="true">
+				<Vertex name="Email" unique="true"/>
+			</Edge>
+			<Edge type="0" name="NameServerEdge" unique="true" scale="Integer.uniform(1,10)">
+				<Vertex scale="Integer.uniform(1,10)" name="NameServer" unique="true" />
+			</Edge>
+		</Vertex>		
+	</CompositeData>	
+	
+	
+   </Definitions>
+   
+   <Indicies>
+    <GraphIndex class="Domain" unique="false">
+      <Field name="name"/>
+    </GraphIndex> 
+    
+    <GraphIndex class="Country" unique="false">
+      <Field name="name"/>
+    </GraphIndex>
+    
+    <GraphIndex class="Registrar" unique="false">
+      <Field name="name"/>
+    </GraphIndex>
+    
+    <GraphIndex class="Email" unique="false">
+      <Field name="name"/>
+    </GraphIndex>   
+    
+     <GraphIndex class="NameServer" unique="false">
+      <Field name="name"/>
+    </GraphIndex> 
+    
+  </Indicies>
+</Template>
