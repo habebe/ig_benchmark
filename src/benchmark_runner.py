@@ -274,7 +274,6 @@ class benchmark_runner:
         return True
 
     def add_profile(self,profile):
-        print "Add profile",profile
         if profile:
             for i in profile:
                 print "\t\t\tProcess profile:",i["data"]
