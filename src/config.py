@@ -51,12 +51,14 @@ class Engine:
     VERSION = "version"
     HOME    = "home"
     MODEL   = "model"
+    INTERFACE = "interface"
     
     def __init__(self,dom_object):
         self.dom_object = dom_object
         self.version = None
         self.home = None
         self.model = None
+        self.interface = 3.2
         pass
 
     def __repr__(self):
@@ -67,8 +69,14 @@ class Engine:
         self.version = self.dom_object.getAttribute(self.VERSION)
         self.home    = self.dom_object.getAttribute(self.HOME)
         self.model   = self.dom_object.getAttribute(self.MODEL)
+        self.interface = self.dom_object.getAttribute(self.INTERFACE)
         if self.model == None:
             self.model = "IG"
+            pass
+        if self.interface == None:
+            self.interface = 3.2
+        else:
+            self.interface = float(self.interface)
             pass
         return True
     pass

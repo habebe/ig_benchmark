@@ -83,7 +83,7 @@ class operation(operations.operation):
                      "AddStorageLocation",
                      "-name","location.{0}".format(counter),
                      "-storageLocation","{0}::{1}".format(storage[1],storage[2]),
-                     "-noTitle",
+                     
                      "-quiet",
                      "-bootfile",bootFile]
         p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
@@ -102,7 +102,7 @@ class operation(operations.operation):
                          "-modelName",engine.model,
                          "-group",i,
                          "-storageLocation","{0}::{1}".format(storage[1],storage[2]),
-                         "-noTitle",
+                         
                          "-quiet",
                          "-bootfile",bootFile]
             p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
@@ -117,7 +117,7 @@ class operation(operations.operation):
             env = self.getEnv(engine.version,engine.home)
             arguments = [os.path.join(engine.home,"bin","objy"),
                          "ListStorage",
-                         "noTitle",
+                         
                          "-bootfile",bootFile]
             p = subprocess.Popen(arguments,stdout=sys.stdout,stderr=sys.stderr,env=env)
             p.wait()
@@ -195,13 +195,16 @@ class operation(operations.operation):
                     build.parse(["--root","{0}".format(rootPath),
                                  "--ig_home","{0}".format(engine.home),
                                  "--ig_version","{0}".format(engine.version),
+                                 "--ig_interface","{0}".format(engine.interface),
                                  "--has_tasks"
                                  ],
                                 )
                 else:
                     build.parse(["--root","{0}".format(rootPath),
                                  "--ig_home","{0}".format(engine.home),
-                                 "--ig_version","{0}".format(engine.version)])
+                                 "--ig_version","{0}".format(engine.version),
+                                 "--ig_interface","{0}".format(engine.interface)]
+                                )
                     pass
                 build.operate()
                 if not os.path.exists(project_path):

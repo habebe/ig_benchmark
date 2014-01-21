@@ -18,6 +18,7 @@ class operation(operations.operation):
         self.add_argument("root","str",None,"Root path.")
         self.add_argument("verbose","int",0,"verbose level.")
         self.add_argument("ig_version","str",None,"InfiniteGraph version.")
+        self.add_argument("ig_interface","float",3.2,"InfiniteGraph interface.")
         self.add_argument("ig_home","str",None,"InfiniteGraph installation path.")
         self.add_argument("has_tasks",None,None,"InfiniteGraph version has tasks.")
         self.add_argument("verbose","int","0","Verbose level.")
@@ -49,7 +50,7 @@ class operation(operations.operation):
         status = False
         try:
             stdout = sys.stdout
-            if self.verbose == 0:
+            if 0 and (self.verbose == 0):
                 stdout = tempfile.TemporaryFile()
                 pass  
             p = subprocess.Popen(arguments,stdout=stdout,stderr=sys.stderr,env=env)
@@ -67,8 +68,10 @@ class operation(operations.operation):
         return status
 
 
-    def __build__(self,path,project,template,has_tasks):
+    def __build__(self,path,interface,project,template,has_tasks):
         parser = ig_template.Schema.Parser(template,path)
+        print "INTERFACE VERSION : " , interface
+        parser.setVersion(interface)
         parser.setVerboseLevel(self.verbose)
         parser.setProjectPath(path)
         parser.setProject(project)
@@ -83,6 +86,7 @@ class operation(operations.operation):
         if operations.operation.operate(self):
             self.root    = self.getSingleOption("root")
             self.ig_version = self.getSingleOption("ig_version")
+            self.ig_interface = self.getSingleOption("ig_interface")
             self.ig_home  = self.getSingleOption("ig_home")
             self.verbose = self.getSingleOption("verbose")
             self.has_tasks = self.hasOption("has_tasks")
@@ -102,7 +106,11 @@ class operation(operations.operation):
             if self.ig_home == None:
                 self.error("InfiniteGraph installation path is not given.")
                 return False
-            
+            if self.ig_interface == None:
+                self.ig_interface = 3.2
+            else:
+                self.ig_interface = float(self.ig_interface)
+                pass
             self.root = os.path.abspath(self.root)
             template_path = os.path.join(self.root,"templates")
             working_path  = os.path.join(self.root,"working",self.ig_version)
@@ -125,9 +133,9 @@ class operation(operations.operation):
                     self.templates.append([path_item,project_item,working_item])
                     pass
                 pass
-
+            
             for i in self.templates:
-                if not self.__build__(i[2],i[1],i[0],self.has_tasks):
+                if not self.__build__(i[2],self.ig_interface,i[1],i[0],self.has_tasks):
                     return False
                 pass
             if self.verbose == 0:
